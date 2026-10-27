@@ -1,0 +1,69 @@
+==============================================================================
+RAPPORT DES TESTS TECHNIQUES LOCAUX - ARCEUS / MESA.CS2
+==============================================================================
+
+=== 1. SUITE DE VÉRIFICATION TECHNIQUE (test_verification.py) ===
+==============================================================================
+SUITE DE VÉRIFICATION TECHNIQUE ARCEUS // CS2 SKIN & INVENTORY LOADER
+==============================================================================
+[TEST 1 - OK] Float 1e-06    -> JSON=1e-06      -> IEEE-754 float32=0.00000100
+[TEST 1 - OK] Float 1e-05    -> JSON=1e-05      -> IEEE-754 float32=0.00001000
+[TEST 1 - OK] Float 0.0001   -> JSON=0.0001     -> IEEE-754 float32=0.00010000
+[TEST 1 - OK] Float 0.001    -> JSON=0.001      -> IEEE-754 float32=0.00100000
+[TEST 1 - OK] Float 0.07     -> JSON=0.07       -> IEEE-754 float32=0.07000000
+[TEST 1 - OK] Float 0.15     -> JSON=0.15       -> IEEE-754 float32=0.15000001
+[TEST 1 - OK] Float 0.25     -> JSON=0.25       -> IEEE-754 float32=0.25000000
+[TEST 1 - OK] Float 0.38     -> JSON=0.38       -> IEEE-754 float32=0.38000000
+[TEST 1 - OK] Float 0.45     -> JSON=0.45       -> IEEE-754 float32=0.44999999
+[TEST 1 - OK] Float 0.99999  -> JSON=0.99999    -> IEEE-754 float32=0.99998999
+[TEST 2 - OK] Protobuf CEconItemPreviewDataBlock (5 stickers + offsets X/Y + CRC32) validé.
+[TEST 3 - OK] Table CS2 Loadout 2.0 (loadout_slot_t : 0, 2..6, 8..12, 14..18, 38, 41, 54) validée.
+[TEST 4 - OK] Attributs dynamiques Source 2 (6, 7, 8, 80, 81, 113..132, 278..287) validés sur 5 slots.
+==============================================================================
+RÉSULTAT GLOBAL DES TESTS UNITAIRES HORS-JEU : 100% VALIDÉ
+STATUT D'EXÉCUTION DANS CS2.EXE              : non testé en jeu
+==============================================================================
+
+
+=== 2. COMPARAISON INDÉPENDANTE INSPECT CSFLOAT (compare_inspect_links.py) ===
+================================================================================
+COMPARAISON DU LIEN D'INSPECTION CS2 (PROJET ARCEUS vs RÉFÉRENCE CSFLOAT)
+================================================================================
+URL GÉNÉRÉE : steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20001807202C2806300938AF85A9E203409505480050B90A5A0C56414E54412D415243455553621E08001097271DCDCC4C3D250000803F2D000070413D8FC2F5BD45CDCC4C3D621E08011098271D00000000250000803F2D000000003D000000004500000000621E08021099271DCDCCCC3D256666663F2D000020C13D9A99193E450AD7A3BD621E0803109A271D00000000250000803F2D000000003D000000004500000000621E0804109B271D0000803E25CDCC8C3F2D000034423DCDCC4C3E45CDCCCC3D43F4D2B9
+
+CHAMP                  | IMPLÉMENTATION PROJET     | RÉFÉRENCE CSFLOAT         | ACCORD
+--------------------------------------------------------------------------------
+defindex               | 7                         | 7                         | OUI
+paintindex             | 44                        | 44                        | OUI
+paintseed              | 661                       | 661                       | OUI
+rarity                 | 6                         | 6                         | OUI
+quality                | 9                         | 9                         | OUI
+killeatervalue         | 1337                      | 1337                      | OUI
+customname             | VANTA-ARCEUS              | VANTA-ARCEUS              | OUI
+crc_valid              | True                      | True                      | OUI
+paintwear (IEEE-754)   | 0.01234500                | 0.01234500                | OUI
+
+--- COMPARAISON DES 5 STICKERS ---
+Nombre de stickers : Projet=5 | Référence=5
+Slot 0 :
+  Projet    : {'slot': 0, 'sticker_id': 5015, 'wear': 0.05, 'scale': 1.0, 'rotation': 15.0, 'offset_x': -0.12, 'offset_y': 0.05}
+  Référence : {'slot': 0, 'sticker_id': 5015, 'wear': 0.05, 'scale': 1.0, 'rotation': 15.0, 'offset_x': -0.12, 'offset_y': 0.05}
+  Correspondance : OUI
+Slot 1 :
+  Projet    : {'slot': 1, 'sticker_id': 5016, 'wear': 0.0, 'scale': 1.0, 'rotation': 0.0, 'offset_x': 0.0, 'offset_y': 0.0}
+  Référence : {'slot': 1, 'sticker_id': 5016, 'wear': 0.0, 'scale': 1.0, 'rotation': 0.0, 'offset_x': 0.0, 'offset_y': 0.0}
+  Correspondance : OUI
+Slot 2 :
+  Projet    : {'slot': 2, 'sticker_id': 5017, 'wear': 0.1, 'scale': 0.9, 'rotation': -10.0, 'offset_x': 0.15, 'offset_y': -0.08}
+  Référence : {'slot': 2, 'sticker_id': 5017, 'wear': 0.1, 'scale': 0.9, 'rotation': -10.0, 'offset_x': 0.15, 'offset_y': -0.08}
+  Correspondance : OUI
+Slot 3 :
+  Projet    : {'slot': 3, 'sticker_id': 5018, 'wear': 0.0, 'scale': 1.0, 'rotation': 0.0, 'offset_x': 0.0, 'offset_y': 0.0}
+  Référence : {'slot': 3, 'sticker_id': 5018, 'wear': 0.0, 'scale': 1.0, 'rotation': 0.0, 'offset_x': 0.0, 'offset_y': 0.0}
+  Correspondance : OUI
+Slot 4 :
+  Projet    : {'slot': 4, 'sticker_id': 5019, 'wear': 0.25, 'scale': 1.1, 'rotation': 45.0, 'offset_x': 0.2, 'offset_y': 0.1}
+  Référence : {'slot': 4, 'sticker_id': 5019, 'wear': 0.25, 'scale': 1.1, 'rotation': 45.0, 'offset_x': 0.2, 'offset_y': 0.1}
+  Correspondance : OUI
+================================================================================
+

@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3-journal
+
+# Edge UI Profile & Cache
+.mesa_ui_profile/
+.cache/
+
+# Visual Studio & CMake
+.vs/
+native/build/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# Screenshots
+Capture d'écran*.png

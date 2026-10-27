@@ -1,0 +1,314 @@
+{
+  "type_id": 1,
+  "description": "CGCClientSharedObjectTypeCache<CSOEconItem>",
+  "owner_soid": {
+    "type": 1,
+    "id": 100000001
+  },
+  "objects": [
+    {
+      "id": 1793120201981,
+      "account_id": 100000001,
+      "def_index": 23,
+      "inventory": 1073741825,
+      "origin": 24,
+      "quality": 4,
+      "level": 1,
+      "rarity": 5,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%2000181720AA062805300438EFA48CD403408D0572D53F84",
+      "attributes": [
+        {
+          "def_index": 6,
+          "value": 810.0,
+          "value_bytes_uint32": 1145733120
+        },
+        {
+          "def_index": 7,
+          "value": 653.0,
+          "value_bytes_uint32": 1143160832
+        },
+        {
+          "def_index": 8,
+          "value": 0.001,
+          "value_bytes_uint32": 981668463
+        }
+      ],
+      "equipped_state": [
+        {
+          "new_class": 2,
+          "new_slot": 9
+        },
+        {
+          "new_class": 3,
+          "new_slot": 9
+        }
+      ]
+    },
+    {
+      "id": 1793120197785,
+      "account_id": 100000001,
+      "def_index": 1,
+      "inventory": 1073741826,
+      "origin": 24,
+      "quality": 4,
+      "level": 1,
+      "rarity": 6,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%2000180120C2072806300438EFA48CD403408D055083952D",
+      "attributes": [
+        {
+          "def_index": 6,
+          "value": 962.0,
+          "value_bytes_uint32": 1148223488
+        },
+        {
+          "def_index": 7,
+          "value": 653.0,
+          "value_bytes_uint32": 1143160832
+        },
+        {
+          "def_index": 8,
+          "value": 0.001,
+          "value_bytes_uint32": 981668463
+        }
+      ],
+      "equipped_state": [
+        {
+          "new_class": 2,
+          "new_slot": 6
+        },
+        {
+          "new_class": 3,
+          "new_slot": 6
+        }
+      ]
+    },
+    {
+      "id": 1793120188077,
+      "account_id": 100000001,
+      "def_index": 7,
+      "inventory": 1073741827,
+      "origin": 24,
+      "quality": 4,
+      "level": 1,
+      "rarity": 6,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%2000180720F50A2806300438EFA48CD403408D0555D20925",
+      "attributes": [
+        {
+          "def_index": 6,
+          "value": 1397.0,
+          "value_bytes_uint32": 1152294912
+        },
+        {
+          "def_index": 7,
+          "value": 653.0,
+          "value_bytes_uint32": 1143160832
+        },
+        {
+          "def_index": 8,
+          "value": 0.001,
+          "value_bytes_uint32": 981668463
+        }
+      ],
+      "equipped_state": [
+        {
+          "new_class": 2,
+          "new_slot": 15
+        },
+        {
+          "new_class": 3,
+          "new_slot": 15
+        }
+      ]
+    },
+    {
+      "id": 1793119999220,
+      "account_id": 100000001,
+      "def_index": 4598,
+      "inventory": 1073741828,
+      "origin": 24,
+      "quality": 4,
+      "level": 1,
+      "rarity": 3,
+      "custom_name": "",
+      "in_use": false,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%200018F62320002803300438EFA48CD4034095050B5D7F6B",
+      "attributes": [],
+      "equipped_state": []
+    },
+    {
+      "id": 1793119859254,
+      "account_id": 100000001,
+      "def_index": 505,
+      "inventory": 1073741829,
+      "origin": 24,
+      "quality": 3,
+      "level": 1,
+      "rarity": 6,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%200018F90320A3032806300338EFA48CD403409505FBA84112",
+      "attributes": [
+        {
+          "def_index": 6,
+          "value": 419.0,
+          "value_bytes_uint32": 1137803264
+        },
+        {
+          "def_index": 7,
+          "value": 661.0,
+          "value_bytes_uint32": 1143291904
+        },
+        {
+          "def_index": 8,
+          "value": 0.001,
+          "value_bytes_uint32": 981668463
+        }
+      ],
+      "equipped_state": [
+        {
+          "new_class": 2,
+          "new_slot": 0
+        },
+        {
+          "new_class": 3,
+          "new_slot": 0
+        }
+      ]
+    },
+    {
+      "id": 1793113954911,
+      "account_id": 100000001,
+      "def_index": 525,
+      "inventory": 1073741830,
+      "origin": 24,
+      "quality": 3,
+      "level": 1,
+      "rarity": 6,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%2000188D0420A103280630033800409505AE8AA15C",
+      "attributes": [
+        {
+          "def_index": 6,
+          "value": 417.0,
+          "value_bytes_uint32": 1137737728
+        },
+        {
+          "def_index": 7,
+          "value": 661.0,
+          "value_bytes_uint32": 1143291904
+        },
+        {
+          "def_index": 8,
+          "value": 0.0,
+          "value_bytes_uint32": 0
+        }
+      ],
+      "equipped_state": [
+        {
+          "new_class": 2,
+          "new_slot": 0
+        },
+        {
+          "new_class": 3,
+          "new_slot": 0
+        }
+      ]
+    },
+    {
+      "id": 1793112079261,
+      "account_id": 100000001,
+      "def_index": 515,
+      "inventory": 1073741831,
+      "origin": 24,
+      "quality": 3,
+      "level": 1,
+      "rarity": 6,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%200018830420E9042806300338EFA48CD403409505EE51AEF4",
+      "attributes": [
+        {
+          "def_index": 6,
+          "value": 617.0,
+          "value_bytes_uint32": 1142571008
+        },
+        {
+          "def_index": 7,
+          "value": 661.0,
+          "value_bytes_uint32": 1143291904
+        },
+        {
+          "def_index": 8,
+          "value": 0.001,
+          "value_bytes_uint32": 981668463
+        }
+      ],
+      "equipped_state": [
+        {
+          "new_class": 2,
+          "new_slot": 0
+        },
+        {
+          "new_class": 3,
+          "new_slot": 0
+        }
+      ]
+    },
+    {
+      "id": 1793120141431,
+      "account_id": 100000001,
+      "def_index": 4726,
+      "inventory": 1073741832,
+      "origin": 24,
+      "quality": 4,
+      "level": 1,
+      "rarity": 6,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%200018F62420002806300438F5A6E2F503408D05ED059173",
+      "attributes": [],
+      "equipped_state": [
+        {
+          "new_class": 2,
+          "new_slot": 38
+        }
+      ]
+    },
+    {
+      "id": 1793120211310,
+      "account_id": 100000001,
+      "def_index": 4751,
+      "inventory": 1073741833,
+      "origin": 24,
+      "quality": 4,
+      "level": 1,
+      "rarity": 6,
+      "custom_name": "",
+      "in_use": true,
+      "stickers": [],
+      "inspect_link": "steam://rungame/730/76561202255233023/+csgo_econ_action_preview%2000188F2520002806300438EFA48CD403408D05D0495B7E",
+      "attributes": [],
+      "equipped_state": [
+        {
+          "new_class": 3,
+          "new_slot": 38
+        }
+      ]
+    }
+  ]
+}

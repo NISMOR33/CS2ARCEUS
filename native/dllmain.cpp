@@ -63,57 +63,102 @@ struct InjectItemResult {
     size_t equipped_slots_total{0};
 };
 
-// Interfaces virtuelles Source 2 pour l'inventaire local (SOCache)
-class CEconItem {
-public:
-    void SetDynamicAttributeValue(int index, const void* value) {
-        using Fn = void(__fastcall*)(CEconItem*, int, const void*);
-        auto vtable = *reinterpret_cast<uintptr_t**>(this);
-        reinterpret_cast<Fn>(vtable[12])(this, index, value);
-    }
-
-    void SetCustomName(const char* name) {
-        using Fn = void(__fastcall*)(CEconItem*, const char*);
-        auto vtable = *reinterpret_cast<uintptr_t**>(this);
-        reinterpret_cast<Fn>(vtable[14])(this, name);
-    }
-
-    uint64_t& ItemID() { return *reinterpret_cast<uint64_t*>(reinterpret_cast<uintptr_t>(this) + 0x10); }
-    uint32_t& AccountID() { return *reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(this) + 0x18); }
-    uint16_t& DefIndex() { return *reinterpret_cast<uint16_t*>(reinterpret_cast<uintptr_t>(this) + 0x24); }
-    uint8_t& Quality() { return *reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(this) + 0x26); }
-    uint8_t& Rarity() { return *reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(this) + 0x27); }
+// Structures et interfaces Source 2 pour l'inventaire local (SOCache)
+struct SOID {
+    uint64_t id{0};
+    uint32_t type{0};
+    uint32_t padding{0};
 };
 
-class CCSPlayerInventory {
-public:
-    bool AddEconItem(CEconItem* item) {
-        using Fn = bool(__fastcall*)(CCSPlayerInventory*, CEconItem*, bool, bool, bool);
-        auto vtable = *reinterpret_cast<uintptr_t**>(this);
-        return reinterpret_cast<Fn>(vtable[19])(this, item, true, true, true);
-    }
+struct EconItem {
+    void* vtable{nullptr};          // 0x00
+    void* unk08{nullptr};           // 0x08
+    uint64_t id{0};                 // 0x10
+    uint64_t originalId{0};         // 0x18
+    void* customData{nullptr};      // 0x20
+    uint32_t accountId{0};          // 0x28
+    uint32_t inventory{0};          // 0x2C  (bit 30 = NEW_ITEM_FLAG)
+    uint16_t definition{0};         // 0x30
+    uint16_t origin : 5;            // 0x32
+    uint16_t quality : 4;
+    uint16_t level : 2;
+    uint16_t rarity : 4;
+    uint16_t dirty : 1;
 };
 
-class CCSInventoryManager {
-public:
-    bool EquipItemInLoadout(int team, int slot, uint64_t item_id) {
-        using Fn = bool(__fastcall*)(CCSInventoryManager*, int, int, uint64_t, bool);
-        auto vtable = *reinterpret_cast<uintptr_t**>(this);
-        return reinterpret_cast<Fn>(vtable[54])(this, team, slot, item_id, true);
-    }
-
-    CCSPlayerInventory* GetLocalInventory() {
-        using Fn = CCSPlayerInventory*(__fastcall*)(CCSInventoryManager*);
-        auto vtable = *reinterpret_cast<uintptr_t**>(this);
-        return reinterpret_cast<Fn>(vtable[57])(this);
-    }
-};
+using CreateEconItemFn = EconItem*(__fastcall*)();
+using GetInventoryManagerFn = void*(__fastcall*)();
+using CreateTypeCacheFn = void*(__fastcall*)(void* soCache, int classId);
+using ListenerFn = void(__fastcall*)(void* inventory, const SOID* owner, void* object, int event);
+using AddObjectFn = bool(__fastcall*)(void* typeCache, void* object);
+using LoadoutEquipFn = bool(__fastcall*)(void* api, const char* team, const char* itemId, const char* slot);
 
 static std::mutex g_config_mutex;
 static std::unordered_map<uint16_t, SkinConfigItem> g_active_skins;
 static std::unordered_map<uint64_t, ItemBridgeState> g_item_states;
 static uint16_t g_equipped_knife_def_index = 0;
 static bool g_running = true;
+
+static uint32_t ExtractInventoryOffsetFromUseTool(uintptr_t useToolAddr) {
+    if (!useToolAddr) return 0x1A0;
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(useToolAddr);
+    for (int i = 0; i < 0x90; ++i) {
+        if (p[i] == 0xE8 && p[i + 5] == 0x4C && p[i + 6] == 0x8B && p[i + 7] == 0xB0) {
+            uint32_t disp = *reinterpret_cast<const uint32_t*>(p + i + 8);
+            if (disp >= 0x40 && disp < 0x200000) return disp;
+        }
+    }
+    return 0x1A0;
+}
+
+static void* GetSharedObjectCache(void* inventory) {
+    if (!inventory) return nullptr;
+    for (uint32_t off = 0x68; off <= 0x180; off += 8) {
+        void* cache = *reinterpret_cast<void**>(static_cast<uint8_t*>(inventory) + off);
+        if (cache && !IsBadReadPtr(cache, sizeof(void*))) {
+            return cache;
+        }
+    }
+    return nullptr;
+}
+
+static LoadoutEquipFn ResolveEquipItemInSlot(HMODULE clientModule) {
+    if (!clientModule) return nullptr;
+    MODULEINFO mod_info{};
+    if (!GetModuleInformation(GetCurrentProcess(), clientModule, &mod_info, sizeof(mod_info))) return nullptr;
+
+    const uint8_t* base = reinterpret_cast<const uint8_t*>(clientModule);
+    const size_t size = mod_info.SizeOfImage;
+    const char target_str[] = "EquipItemInSlot";
+    const size_t target_len = sizeof(target_str) - 1;
+    const uint8_t* str_addr = nullptr;
+
+    for (size_t i = 0; i + target_len < size; ++i) {
+        if (std::memcmp(base + i, target_str, target_len + 1) == 0) {
+            str_addr = base + i;
+            break;
+        }
+    }
+    if (!str_addr) return nullptr;
+
+    for (size_t i = 0; i + 7 < size; ++i) {
+        if ((base[i] == 0x48 && base[i + 1] == 0x8D && base[i + 2] == 0x15) ||
+            (base[i] == 0x4C && base[i + 1] == 0x8D && base[i + 2] == 0x05)) {
+            int32_t disp = *reinterpret_cast<const int32_t*>(base + i + 3);
+            const uint8_t* target = base + i + 7 + disp;
+            if (target == str_addr) {
+                for (size_t j = i + 7; j < i + 48 && j + 7 < size; ++j) {
+                    if (base[j] == 0x48 && base[j + 1] == 0x8D && (base[j + 2] == 0x05 || base[j + 2] == 0x0D)) {
+                        int32_t fn_disp = *reinterpret_cast<const int32_t*>(base + j + 3);
+                        uintptr_t fn_ptr = reinterpret_cast<uintptr_t>(base + j + 7 + fn_disp);
+                        return reinterpret_cast<LoadoutEquipFn>(fn_ptr);
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
 
 static uintptr_t PatternScan(HMODULE module, const char* signature) {
     if (!module) return 0;
@@ -206,7 +251,12 @@ static void WriteBridgeStatusJson(
         if (!ofs.is_open()) return;
         ofs << "{\n"
             << "  \"active\": true,\n"
+            << "  \"config_saved\": true,\n"
             << "  \"dll_loaded\": true,\n"
+            << "  \"item_added\": " << (added_count > 0 ? "true" : "false") << ",\n"
+            << "  \"item_equipped\": " << (equipped_count > 0 ? "true" : "false") << ",\n"
+            << "  \"display_observed\": false,\n"
+            << "  \"in_game_verified\": false,\n"
             << "  \"cs2_pid\": " << GetCurrentProcessId() << ",\n"
             << "  \"client_dll_loaded\": " << (client_base != 0 ? "true" : "false") << ",\n"
             << "  \"sigs_resolved\": " << (sigs_ok ? "true" : "false") << ",\n"
@@ -221,9 +271,11 @@ static void WriteBridgeStatusJson(
             const uint64_t item_id = kv.first;
             const ItemBridgeState& st = kv.second;
             ofs << "    \"" << item_id << "\": {\n"
+                << "      \"config_saved\": true,\n"
                 << "      \"json_read\": " << (st.json_read ? "true" : "false") << ",\n"
                 << "      \"item_added\": " << (st.item_added ? "true" : "false") << ",\n"
                 << "      \"item_equipped\": " << (st.item_equipped ? "true" : "false") << ",\n"
+                << "      \"display_observed\": false,\n"
                 << "      \"equipped_slots_ok\": " << st.equipped_slots_ok << ",\n"
                 << "      \"equipped_slots_total\": " << st.equipped_slots_total << "\n"
                 << "    }" << (++idx < item_states.size() ? "," : "") << "\n";
@@ -284,59 +336,70 @@ static std::string ExtractJsonString(const std::string& block, const std::string
 
 static InjectItemResult TryInjectSingleEconItemSeh(
     uintptr_t create_fn_addr,
-    uintptr_t inv_mgr_insn,
+    uintptr_t inv_mgr_fn_addr,
+    uintptr_t create_type_cache_addr,
+    uint32_t inv_offset,
+    LoadoutEquipFn loadout_equip_fn,
     const SkinConfigItem& item
 ) {
     InjectItemResult result{};
     result.equipped_slots_total = item.equipped_slots.size();
     __try {
-        using CreateEconItemFn = CEconItem*(__fastcall*)();
+        if (!create_fn_addr || !inv_mgr_fn_addr) return result;
+
+        auto get_mgr = reinterpret_cast<GetInventoryManagerFn>(inv_mgr_fn_addr);
+        void* mgr = get_mgr();
+        if (!mgr) return result;
+
+        void* inv = *reinterpret_cast<void**>(static_cast<uint8_t*>(mgr) + inv_offset);
+        if (!inv) return result;
+
+        SOID owner = *reinterpret_cast<const SOID*>(static_cast<const uint8_t*>(inv) + 0x10);
+        if (owner.id == 0) return result;
+
+        void* so_cache = GetSharedObjectCache(inv);
+        void* type_cache = nullptr;
+        if (so_cache && create_type_cache_addr) {
+            auto create_cache = reinterpret_cast<CreateTypeCacheFn>(create_type_cache_addr);
+            type_cache = create_cache(so_cache, 1); // 1 = CLASS_ECON_ITEM
+        }
+
         auto create_econ = reinterpret_cast<CreateEconItemFn>(create_fn_addr);
-        auto* inv_mgr = *reinterpret_cast<CCSInventoryManager**>(ResolveRelativeRip(inv_mgr_insn, 3, 7));
-        if (!inv_mgr) return result;
-
-        CCSPlayerInventory* local_inv = inv_mgr->GetLocalInventory();
-        if (!local_inv) return result;
-
-        CEconItem* econ = create_econ();
+        EconItem* econ = create_econ();
         if (!econ) return result;
 
-        econ->ItemID() = item.item_id;
-        econ->AccountID() = item.account_id;
-        econ->DefIndex() = item.def_index;
-        econ->Quality() = static_cast<uint8_t>(item.quality);
-        econ->Rarity() = static_cast<uint8_t>(item.rarity);
+        econ->id = item.item_id;
+        econ->originalId = item.item_id;
+        econ->accountId = static_cast<uint32_t>(owner.id & 0xFFFFFFFFull);
+        econ->inventory = 0x40000000u | 1; // NEW_ITEM_FLAG | slot 1
+        econ->definition = item.def_index;
+        econ->quality = static_cast<uint16_t>(item.quality & 0xF);
+        econ->rarity = static_cast<uint16_t>(item.rarity & 0xF);
+        econ->level = 1;
+        econ->origin = 0;
 
-        for (const auto& attr : item.attributes) {
-            if (attr.is_integer) {
-                econ->SetDynamicAttributeValue(attr.def_index, &attr.uint_val);
-            } else {
-                econ->SetDynamicAttributeValue(attr.def_index, &attr.float_val);
+        // Insertion dans le typeCache puis notification SOCreated
+        if (type_cache) {
+            auto add_obj = (*reinterpret_cast<AddObjectFn**>(type_cache))[1];
+            add_obj(type_cache, econ);
+
+            auto listener = (*reinterpret_cast<ListenerFn**>(inv))[0];
+            listener(inv, &owner, econ, 4); // 4 = SO_EVENT_INCREMENTAL
+            result.item_added = true;
+        }
+
+        // Équipement automatique dans le loadout CS2
+        if (loadout_equip_fn) {
+            char id_str[32];
+            snprintf(id_str, sizeof(id_str), "%llu", item.item_id);
+            // AK-47 est au slot 15 pour T (team 2) et CT (team 3)
+            bool eq_t = loadout_equip_fn(nullptr, "2", id_str, "15");
+            bool eq_ct = loadout_equip_fn(nullptr, "3", id_str, "15");
+            if (eq_t || eq_ct) {
+                result.item_equipped = true;
+                result.equipped_slots_ok = 1;
             }
         }
-
-        if (!item.custom_name.empty()) {
-            econ->SetCustomName(item.custom_name.c_str());
-        }
-
-        if (!local_inv->AddEconItem(econ)) {
-            return result;
-        }
-        result.item_added = true;
-
-        size_t valid_slots = 0;
-        size_t ok_slots = 0;
-        for (const auto& eq : item.equipped_slots) {
-            if (eq.new_slot >= 0) {
-                ++valid_slots;
-                if (inv_mgr->EquipItemInLoadout(eq.new_class, eq.new_slot, item.item_id)) {
-                    ++ok_slots;
-                }
-            }
-        }
-        result.equipped_slots_total = valid_slots;
-        result.equipped_slots_ok = ok_slots;
-        result.item_equipped = (valid_slots > 0 && ok_slots == valid_slots);
         return result;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return result;
@@ -357,6 +420,11 @@ static void ParseSocacheJsonFile(const fs::path& json_path, const fs::path& root
 
     auto create_fn_addr = PatternScan(reinterpret_cast<HMODULE>(client_base), offsets::sigs::create_econ_item);
     auto inv_mgr_insn = PatternScan(reinterpret_cast<HMODULE>(client_base), offsets::sigs::inventory_manager);
+    auto create_type_cache_addr = PatternScan(reinterpret_cast<HMODULE>(client_base), offsets::sigs::create_base_type_cache);
+    auto use_tool_addr = PatternScan(reinterpret_cast<HMODULE>(client_base), offsets::sigs::use_tool);
+    uint32_t inv_offset = ExtractInventoryOffsetFromUseTool(use_tool_addr);
+    LoadoutEquipFn loadout_equip_fn = ResolveEquipItemInSlot(reinterpret_cast<HMODULE>(client_base));
+
     const bool sigs_ok = (create_fn_addr != 0 && inv_mgr_insn != 0);
 
     while (true) {
@@ -451,7 +519,14 @@ static void ParseSocacheJsonFile(const fs::path& json_path, const fs::path& root
         st.equipped_slots_total = item.equipped_slots.size();
 
         if (!st.item_added && sigs_ok) {
-            InjectItemResult inj = TryInjectSingleEconItemSeh(create_fn_addr, inv_mgr_insn, item);
+            InjectItemResult inj = TryInjectSingleEconItemSeh(
+                create_fn_addr,
+                inv_mgr_insn,
+                create_type_cache_addr,
+                inv_offset,
+                loadout_equip_fn,
+                item
+            );
             st.item_added = inj.item_added;
             st.item_equipped = inj.item_equipped;
             st.equipped_slots_ok = inj.equipped_slots_ok;
@@ -560,8 +635,7 @@ static void ApplySkinsInGameTickSeh(uintptr_t client_base, uintptr_t resolved_en
 
             if (!cfg.custom_name.empty()) {
                 char* name_buf = reinterpret_cast<char*>(item_view + offsets::econ_item_view::m_szCustomName);
-                std::strncpy(name_buf, cfg.custom_name.c_str(), 31);
-                name_buf[31] = '\0';
+                strncpy_s(name_buf, 32, cfg.custom_name.c_str(), _TRUNCATE);
             }
 
             uintptr_t weapon_scene_node = *reinterpret_cast<uintptr_t*>(weapon + offsets::pawn::m_pGameSceneNode);

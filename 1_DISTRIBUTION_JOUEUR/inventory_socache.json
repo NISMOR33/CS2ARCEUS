@@ -1,0 +1,9 @@
+{
+  "type_id": 1,
+  "description": "CGCClientSharedObjectTypeCache<CSOEconItem>",
+  "owner_soid": {
+    "type": 1,
+    "id": 100000001
+  },
+  "objects": []
+}

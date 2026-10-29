@@ -4,13 +4,15 @@
 
 namespace offsets {
     namespace sigs {
-        // client.dll — Signatures AOB Source 2 (CS2 x64)
-        inline constexpr const char* inventory_manager = "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 89 5C 24 ? 57";
-        inline constexpr const char* gc_client_system  = "48 8B 05 ? ? ? ? 48 8D 54 24 ? 48 8B 01 FF 50 ? 84 C0";
-        inline constexpr const char* create_econ_item  = "48 83 EC 28 B9 48 00 00 00 E8 ? ? ? ? 48 85 C0 74 3A";
-        inline constexpr const char* set_mesh_group    = "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8D 99 ? ? ? ? 48 8B F9";
-        inline constexpr const char* entity_list       = "48 8B 0D ? ? ? ? 48 89 7C 24 ? 8B FA C1 EB 09";
-        inline constexpr const char* local_player_pawn = "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 83 EC ? 8B 0D";
+        // client.dll — Signatures AOB Source 2 vérifiées (CS2 x64 2026)
+        inline constexpr const char* inventory_manager      = "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 8B 91 ? ? ? ? B8";
+        inline constexpr const char* create_econ_item       = "48 83 EC 28 B9 48 00 00 00 E8 ? ? ? ? 48 85";
+        inline constexpr const char* create_base_type_cache = "40 ? 48 83 EC ? 4C 8B 49 ? 44 8B D2";
+        inline constexpr const char* use_tool               = "48 85 D2 0F 84 ? ? ? ? 53 41 57 48 83 EC 28 49 8B D8 4C 8B F9 48 85 DB 0F 84";
+        inline constexpr const char* build_modern_skin      = "48 85 C9 0F 84 ? ? ? ? 48 8B C4 48 89 50 10";
+        inline constexpr const char* release_composite      = "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B D9 41 8A F8";
+        inline constexpr const char* entity_list            = "48 8B 0D ? ? ? ? 48 89 7C 24 ? 8B FA C1 EB 09";
+        inline constexpr const char* local_player_pawn      = "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 83 EC ? 8B 0D";
     }
 
     namespace client_dll {
@@ -50,9 +52,9 @@ namespace offsets {
         inline constexpr std::ptrdiff_t m_iItemIDLow = 0x1D0;
         inline constexpr std::ptrdiff_t m_iItemIDHigh = 0x1D4;
         inline constexpr std::ptrdiff_t m_iAccountID = 0x1D8;
-        inline constexpr std::ptrdiff_t m_bDisallowSOC = 0x1D9;
-        inline constexpr std::ptrdiff_t m_bInitialized = 0x1DA;
-        inline constexpr std::ptrdiff_t m_szCustomName = 0x270;
+        inline constexpr std::ptrdiff_t m_bInitialized = 0x1E8;
+        inline constexpr std::ptrdiff_t m_bDisallowSOC = 0x1E9;
+        inline constexpr std::ptrdiff_t m_szCustomName = 0x2F8;
     }
 
     namespace scene_node {

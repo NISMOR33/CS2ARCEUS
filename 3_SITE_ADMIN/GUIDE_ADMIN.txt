@@ -1,0 +1,18 @@
+===============================================================
+  ARCEUS // CONSOLE D'ADMINISTRATION SECRÈTE (GESTION CLOUD SUPABASE)
+===============================================================
+
+ACCÈS AU PANNEAU :
+- En local : Double-cliquez simplement sur 'index.html' dans votre navigateur.
+- En ligne : Vous pouvez aussi glisser ce dossier sur Netlify/Vercel pour avoir
+  votre panneau admin accessible depuis votre smartphone n'importe où !
+
+MOT DE PASSE MAÎTRE :
+  dj2026  (ou 'admin')
+
+FONCTIONNALITÉS :
+- Connecté en temps réel à votre base Supabase Cloud.
+- Générateur 1-clic de nouvelles licences (7 jours, 1 mois, 1 an, à vie).
+- Statut en direct des joueurs en jeu (pastille verte 'EN JEU' dès qu'un joueur est actif sur CS2).
+- Bouton 'Bannir' rouge : coupe immédiatement la clé et ferme le jeu du joueur à distance.
+===============================================================

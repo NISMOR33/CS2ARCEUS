@@ -1,0 +1,19 @@
+===============================================================
+  ARCEUS // CS2 KERNEL SKIN & INVENTORY LOADER (CLIENT OFFICIEL)
+===============================================================
+
+1. DÉMARRAGE :
+   - Lancez 'ARCEUS.exe' en tant qu'administrateur.
+   - Saisissez votre Pseudo et votre Clé d'activation reçue lors de votre achat.
+   - Cliquez sur 'CONNEXION & DÉVERROUILLAGE'.
+
+2. UTILISATION EN JEU (CS2) :
+   - Lancez Counter-Strike 2.
+   - Appuyez sur la touche 'INSERT' (ou 'HOME' ou 'F6') sur votre clavier 
+     pour afficher ou masquer le menu à tout moment en plein jeu.
+   - Équipez n'importe quel skin, couteau, gant, stickers et StatTrak en 1 clic.
+
+3. SÉCURITÉ :
+   - Votre licence est liée à votre ordinateur.
+   - Le temps restant s'affiche en temps réel sur la barre inférieure du launcher.
+===============================================================

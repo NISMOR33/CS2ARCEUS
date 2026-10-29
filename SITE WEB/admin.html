@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARCEUS // MASTER ADMIN CONSOLE</title>
+<link rel="icon" type="image/x-icon" href="logo.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060709;
+    --card: #0d0f14;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text: #f4f4f5;
+    --text-muted: #71717a;
+    --emerald: #10b981;
+    --emerald-dim: rgba(16, 185, 129, 0.12);
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    --rose-dim: rgba(244, 63, 94, 0.12);
+    --mono: "Geist Mono", ui-monospace, monospace;
+    --sans: "Geist", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── LOCK SCREEN (AUTHENTIFICATION ADMIN) ─── */
+  #adminLockScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: #040507;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .lock-box {
+    background: #0c0e12;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 380px;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95);
+  }
+  .lock-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #ffffff;
+    display: inline-grid;
+    place-items: center;
+    margin-bottom: 18px;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+  }
+  .lock-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-family: var(--mono);
+    margin-bottom: 6px;
+  }
+  .lock-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+  .lock-input {
+    width: 100%;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    padding: 0 14px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 14px;
+    text-align: center;
+    letter-spacing: 0.15em;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .lock-input:focus { border-color: #fff; }
+  .btn-unlock {
+    width: 100%;
+    height: 44px;
+    background: #ffffff;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-unlock:hover { background: #e2e8f0; }
+
+  /* ─── ADMIN HEADER ─── */
+  header.admin-header {
+    height: 64px;
+    border-bottom: 1px solid var(--card-border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(12, 14, 18, 0.6);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+  }
+  .brand-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: var(--emerald);
+    font-size: 10px;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .btn-action {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .btn-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  main.admin-main {
+    flex: 1;
+    max-width: 1300px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* ─── STATS CARDS ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px 22px;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: -0.03em;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--emerald);
+    font-weight: 500;
+  }
+
+  /* ─── ACTION PANEL & GENERATOR ─── */
+  .action-panel {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+  }
+  .generator-form {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .gen-select, .gen-input {
+    height: 42px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0 14px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .gen-select { min-width: 160px; }
+  .gen-input { flex: 1; min-width: 220px; }
+  .gen-select:focus, .gen-input:focus { border-color: rgba(255, 255, 255, 0.3); }
+  .btn-gen {
+    height: 42px;
+    padding: 0 22px;
+    background: #ffffff;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .btn-gen:hover { background: #e2e8f0; }
+
+  /* Notification bandeau clé générée */
+  .key-alert {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px dashed var(--emerald);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .key-alert.active { display: flex; }
+
+  /* ─── LICENSES TABLE ─── */
+  .table-panel {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .table-top {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--card-border);
+    flex-wrap: wrap;
+  }
+  .search-input {
+    height: 36px;
+    width: 280px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0 12px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 12px;
+    outline: none;
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table.lic-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 12px;
+  }
+  table.lic-table th {
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--card-border);
+  }
+  table.lic-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-family: var(--mono);
+    vertical-align: middle;
+  }
+  table.lic-table tr:hover td {
+    background: rgba(255, 255, 255, 0.015);
+  }
+  .badge-plan {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .badge-plan.p-7j { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+  .badge-plan.p-1m { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+  .badge-plan.p-1a { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+  .badge-plan.p-vie { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .dot.online {
+    background: var(--emerald);
+    box-shadow: 0 0 10px var(--emerald);
+    animation: pulse 1.8s infinite;
+  }
+  .dot.offline { background: #52525b; }
+  .dot.revoked { background: var(--rose); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.15); }
+  }
+
+  .btn-sm {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-sm:hover { background: rgba(255, 255, 255, 0.12); }
+  .btn-sm.danger { color: var(--rose); border-color: rgba(244, 63, 94, 0.3); }
+  .btn-sm.danger:hover { background: var(--rose-dim); }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    header.admin-header { padding: 0 16px; }
+    main.admin-main { padding: 18px 12px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ÉCRAN DE VERROUILLAGE MASTER ADMIN -->
+  <div id="adminLockScreen">
+    <div class="lock-box">
+      <div class="lock-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      </div>
+      <div class="lock-title">ARCEUS // ADMIN</div>
+      <div class="lock-desc">Accès réservé. Entrez le mot de passe maître pour déverrouiller la console.</div>
+      <form onsubmit="handleAdminUnlock(event)">
+        <input type="password" id="adminPassInput" class="lock-input" placeholder="MOT DE PASSE" required autofocus>
+        <button type="submit" class="btn-unlock">DÉVERROUILLER →</button>
+      </form>
+      <div id="lockError" style="font-size:11px;color:var(--rose);margin-top:12px;min-height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- HEADER ADMIN -->
+  <header class="admin-header">
+    <div class="brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>ARCEUS CONSOLE</span>
+      <span class="brand-badge">ADMIN v2.6</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-action" id="serverPill" onclick="promptServerUrl()" title="Configurer l'URL du serveur central">
+        <span id="serverDot" style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;margin-right:6px;"></span>
+        <span id="serverLabel">Cloud Connecté</span>
+      </button>
+      <a href="index.html" class="btn-action" target="_blank">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        <span>Voir le site</span>
+      </a>
+      <button class="btn-action" onclick="refreshAdminData()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        <span>Actualiser</span>
+      </button>
+      <button class="btn-action" onclick="handleAdminLock()">
+        <span>Verrouiller</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN ADMIN -->
+  <main class="admin-main">
+    
+    <!-- KPI STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Licences</div>
+        <div class="stat-value" id="kpiTotal">0</div>
+        <div class="stat-sub">Toutes formules confondues</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sessions En Ligne</div>
+        <div class="stat-value" style="color:var(--emerald);" id="kpiOnline">0</div>
+        <div class="stat-sub">Joueurs actifs sur CS2</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Licences À Vie</div>
+        <div class="stat-value" id="kpiLifetime">0</div>
+        <div class="stat-sub">Membres VIP permanents</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revenu Estimé</div>
+        <div class="stat-value" id="kpiRevenue">0 €</div>
+        <div class="stat-sub">Volume Stripe catalogue</div>
+      </div>
+    </div>
+
+    <!-- GÉNÉRATEUR RAPIDE 1-CLIC -->
+    <div class="action-panel">
+      <div class="panel-header">
+        <div class="panel-title">GÉNÉRATEUR RAPIDE DE LICENCES (1-CLIC)</div>
+        <span style="font-size:11px;color:var(--text-muted);font-family:var(--mono);">Stockage direct licenses.db</span>
+      </div>
+      <form class="generator-form" onsubmit="handleCreateLicense(event)">
+        <select id="genPlanSelect" class="gen-select">
+          <option value="7jours">7 JOURS (4,99 €)</option>
+          <option value="1mois">1 MOIS (9,99 €)</option>
+          <option value="1an">1 AN (24,99 €)</option>
+          <option value="vie" selected>À VIE (49,99 €)</option>
+        </select>
+        <input type="text" id="genEmailInput" class="gen-input" placeholder="Email ou pseudo client (ex: client@gmail.com)">
+        <button type="submit" class="btn-gen">+ GÉNÉRER LA CLÉ</button>
+      </form>
+
+      <div class="key-alert" id="keyGeneratedAlert">
+        <div>
+          <span style="color:var(--emerald);font-weight:700;">✓ NOUVELLE LICENCE CRÉÉE : </span>
+          <span id="genKeyString" style="font-weight:800;color:#fff;margin-left:8px;letter-spacing:0.06em;">ARCEUS-XXXX-XXXX-XXXX</span>
+          <span id="genPlanInfo" style="color:var(--text-muted);margin-left:10px;">[À VIE]</span>
+        </div>
+        <button type="button" class="btn-sm" onclick="copyGenKey()">COPIER LA CLÉ</button>
+      </div>
+    </div>
+
+    <!-- TABLEAU COMPLET DES LICENCES -->
+    <div class="table-panel">
+      <div class="table-top">
+        <div class="panel-title">LICENCES ÉMISES & STATUT MATÉRIEL (HWID)</div>
+        <input type="text" id="searchLicInput" class="search-input" placeholder="Rechercher par clé, pseudo..." oninput="filterLicenses()">
+      </div>
+      <div class="table-wrap">
+        <table class="lic-table">
+          <thead>
+            <tr>
+              <th>Clé d'activation</th>
+              <th>Formule</th>
+              <th>Utilisateur / Pseudo</th>
+              <th>Date d'émission</th>
+              <th>Temps restant</th>
+              <th>Statut PC (HWID)</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="licensesTableBody">
+            <!-- Rendu dynamique par JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const MASTER_PASS_HASH = "b9c61e12b9308d2345678"; // 'dj2026' ou 'admin'
+    const ADMIN_AUTH_KEY = "arceus_admin_unlocked";
+    const ADMIN_PASS_KEY = "arceus_admin_pass";
+
+    const SUPABASE_URL = "https://hnhlymnmzmnafhrdtmfl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_yFdTjfxRT5nuGL1SQnjVsw_lMsqVxdz";
+
+    async function supabaseFetch(endpoint, options = {}) {
+      const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+      const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        ...(options.headers || {})
+      };
+      return fetch(url, { ...options, headers });
+    }
+
+    let licensesData = [];
+
+    function getServerBase() {
+      const stored = localStorage.getItem(SERVER_URL_KEY);
+      if (stored) return stored.replace(/\/+$/, '');
+      if (location.protocol.startsWith('http')) return location.origin;
+      return 'http://127.0.0.1:8080';
+    }
+
+    function promptServerUrl() {
+      const cur = getServerBase();
+      const next = prompt("URL du serveur central ARCEUS (Railway, Render ou VPS) :", cur);
+      if (next !== null) {
+        localStorage.setItem(SERVER_URL_KEY, next.trim().replace(/\/+$/, ''));
+        loadAdminData();
+      }
+    }
+
+    function setServerIndicator(online, text) {
+      const dot = document.getElementById('serverDot');
+      const label = document.getElementById('serverLabel');
+      if (dot && label) {
+        dot.style.background = online ? '#10b981' : '#f43f5e';
+        label.textContent = text || (online ? 'Cloud Connecté' : 'Hors-Ligne');
+      }
+    }
+
+    // ─── AUTHENTIFICATION ADMIN ───
+    function checkAuth() {
+      if (sessionStorage.getItem(ADMIN_AUTH_KEY) === "true") {
+        document.getElementById('adminLockScreen').style.display = 'none';
+        loadAdminData();
+      } else {
+        document.getElementById('adminLockScreen').style.display = 'flex';
+      }
+    }
+
+    function handleAdminUnlock(e) {
+      e.preventDefault();
+      const pass = document.getElementById('adminPassInput').value.trim();
+      const err = document.getElementById('lockError');
+
+      // Mot de passe par défaut : 'dj2026' ou 'arceus'
+      if (pass === "dj2026" || pass === "arceus" || pass === "admin") {
+        sessionStorage.setItem(ADMIN_AUTH_KEY, "true");
+        sessionStorage.setItem(ADMIN_PASS_KEY, pass);
+        document.getElementById('adminLockScreen').style.display = 'none';
+        err.textContent = "";
+        loadAdminData();
+      } else {
+        err.textContent = "Mot de passe maître invalide.";
+      }
+    }
+
+    function handleAdminLock() {
+      sessionStorage.removeItem(ADMIN_AUTH_KEY);
+      location.reload();
+    }
+
+    // ─── CHARGEMENT DES DONNÉES ───
+    async function loadAdminData() {
+      // 1. Requête Supabase Cloud en direct
+      try {
+        const resp = await supabaseFetch('licenses?select=*&order=created_at.desc');
+        if (resp.ok) {
+          const list = await resp.json();
+          licensesData = list.map(r => ({
+            key: r.key,
+            plan: r.plan,
+            created_at: r.created_at,
+            expires_at: r.expires_at,
+            is_lifetime: (r.duration_seconds === -1 || r.duration_seconds === "-1"),
+            bound_pseudo: r.bound_pseudo || "-",
+            active_hwid: r.active_hwid ? (r.active_hwid.slice(0, 8) + '...') : "-",
+            is_active: Boolean(r.active_hwid && (Date.now()/1000 - (r.last_heartbeat || 0) < 45)),
+            is_revoked: Boolean(r.is_revoked),
+            remaining_seconds: (r.duration_seconds === -1) ? -1 : Math.max(0, Math.floor((r.expires_at || 0) - Date.now()/1000))
+          }));
+          setServerIndicator(true, 'Supabase Cloud (' + licensesData.length + ')');
+          saveLocalCache();
+          renderAll();
+          return;
+        }
+      } catch (e) {}
+
+      setServerIndicator(false, 'Local Cache');
+
+      // 2. Si table Supabase non encore initialisée ou hors-ligne, charge depuis le cache local
+      const local = localStorage.getItem('arceus_admin_licenses_cache');
+      if (local) {
+        try {
+          licensesData = JSON.parse(local);
+        } catch (e) {
+          licensesData = [];
+        }
+      } else {
+        // Jeu de démarrage avec les clés officielles
+        licensesData = [
+          { key: 'ARCEUS-MASTER-LIFETIME', plan: 'vie', created_at: Date.now()/1000 - 86400*3, expires_at: null, is_lifetime: true, bound_pseudo: 'dj', is_active: true, remaining_seconds: -1 },
+          { key: 'ARCEUS-DEMO-7JOURS', plan: '7jours', created_at: Date.now()/1000 - 3600*12, expires_at: Date.now()/1000 + 86400*6.5, is_lifetime: false, bound_pseudo: 'm0NESY_fan', is_active: false, remaining_seconds: 561600 },
+          { key: 'ARCEUS-VIP-PRO-2026', plan: '1an', created_at: Date.now()/1000 - 86400*10, expires_at: Date.now()/1000 + 86400*355, is_lifetime: false, bound_pseudo: 'ZywOo_CS2', is_active: true, remaining_seconds: 30672000 }
+        ];
+        saveLocalCache();
+      }
+      renderAll();
+    }
+
+    function saveLocalCache() {
+      localStorage.setItem('arceus_admin_licenses_cache', JSON.stringify(licensesData));
+    }
+
+    function refreshAdminData() {
+      loadAdminData();
+    }
+
+    // ─── RENDU DU TABLEAU ET DES STATS ───
+    function renderAll() {
+      updateKPIs();
+      renderTable(licensesData);
+    }
+
+    function updateKPIs() {
+      const total = licensesData.length;
+      const online = licensesData.filter(l => l.is_active).length;
+      const lifetime = licensesData.filter(l => l.is_lifetime).length;
+
+      const planPrices = { '7jours': 4.99, 'semaine': 4.99, '1mois': 9.99, 'mois': 9.99, '1an': 24.99, 'an': 24.99, 'vie': 49.99 };
+      const rev = licensesData.reduce((acc, l) => acc + (planPrices[l.plan] || 0), 0);
+
+      document.getElementById('kpiTotal').textContent = total;
+      document.getElementById('kpiOnline').textContent = online;
+      document.getElementById('kpiLifetime').textContent = lifetime;
+      document.getElementById('kpiRevenue').textContent = rev.toFixed(2) + ' €';
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('licensesTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Aucune licence trouvée.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(l => {
+        const badgeClass = l.plan.includes('vie') ? 'p-vie' : l.plan.includes('an') ? 'p-1a' : l.plan.includes('mois') ? 'p-1m' : 'p-7j';
+        const planLabel = l.plan.includes('vie') ? 'À VIE' : l.plan.includes('an') ? '1 AN' : l.plan.includes('mois') ? '1 MOIS' : '7 JOURS';
+        const dateStr = l.created_at ? new Date(l.created_at * 1000).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
+        
+        let remStr = 'ILLIMITÉ';
+        let remColor = '#10b981';
+        if (!l.is_lifetime && l.expires_at) {
+          const nowSec = Date.now() / 1000;
+          const diff = Math.max(0, Math.floor(l.expires_at - nowSec));
+          if (diff <= 0) {
+            remStr = 'EXPIRÉ';
+            remColor = '#f43f5e';
+          } else {
+            const d = Math.floor(diff / 86400);
+            const h = Math.floor((diff % 86400) / 3600);
+            remStr = `${d}j ${h}h`;
+            if (diff < 86400) remColor = '#f59e0b';
+          }
+        }
+
+        const dotClass = l.is_revoked ? 'revoked' : l.is_active ? 'online' : 'offline';
+        const statusLabel = l.is_revoked ? 'RÉVOQUÉ' : l.is_active ? 'EN JEU' : 'HORS LIGNE';
+
+        return `
+          <tr>
+            <td style="font-weight:700;letter-spacing:0.04em;color:#fff;">${l.key}</td>
+            <td><span class="badge-plan ${badgeClass}">${planLabel}</span></td>
+            <td><span style="color:#e4e4e7;">${l.bound_pseudo || 'Non lié'}</span></td>
+            <td style="color:var(--text-muted);">${dateStr}</td>
+            <td style="font-weight:700;color:${remColor};">${remStr}</td>
+            <td>
+              <div class="status-dot">
+                <span class="dot ${dotClass}"></span>
+                <span>${statusLabel}</span>
+              </div>
+            </td>
+            <td style="text-align:right;">
+              <button class="btn-sm" onclick="copyText('${l.key}')" title="Copier la clé">Copier</button>
+              <button class="btn-sm danger" onclick="revokeKey('${l.key}')" title="Bannir ou révoquer">Bannir</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterLicenses() {
+      const q = (document.getElementById('searchLicInput').value || '').trim().toLowerCase();
+      if (!q) {
+        renderTable(licensesData);
+        return;
+      }
+      const filtered = licensesData.filter(l => 
+        l.key.toLowerCase().includes(q) ||
+        (l.bound_pseudo && l.bound_pseudo.toLowerCase().includes(q)) ||
+        l.plan.toLowerCase().includes(q)
+      );
+      renderTable(filtered);
+    }
+
+
+    // ─── MOTEUR CRYPTOGRAPHIQUE ARCEUS (SHA-256) ───
+    const ARCEUS_MASTER_SECRET = "ARCEUS_CORE_2026_VANTA_SECURE";
+
+    function sha256_sync(ascii) {
+      function rightRotate(value, amount) { return (value>>>amount) | (value<<(32 - amount)); }
+      const mathPow = Math.pow;
+      const maxWord = mathPow(2, 32);
+      let lengthProperty = 'length';
+      let i, j;
+      let result = '';
+      const words = [];
+      const asciiBitLength = ascii[lengthProperty]*8;
+      let hash = sha256_sync.h = sha256_sync.h || [];
+      const k = sha256_sync.k = sha256_sync.k || [];
+      let primeCounter = k[lengthProperty];
+      const isComposite = {};
+      for (let candidate = 2; primeCounter < 64; candidate++) {
+        if (!isComposite[candidate]) {
+          for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+          hash[primeCounter] = (mathPow(candidate, .5)*maxWord)|0;
+          k[primeCounter++] = (mathPow(candidate, 1/3)*maxWord)|0;
+        }
+      }
+      ascii += '\x80';
+      while (ascii[lengthProperty]%64 - 56) ascii += '\x00';
+      for (i = 0; i < ascii[lengthProperty]; i++) {
+        j = ascii.charCodeAt(i);
+        if (j>>8) return;
+        words[i>>2] |= j << ((3 - i)%4)*8;
+      }
+      words[words[lengthProperty]] = ((asciiBitLength/maxWord)|0);
+      words[words[lengthProperty]] = (asciiBitLength);
+      for (j = 0; j < words[lengthProperty];) {
+        const w = words.slice(j, j += 16);
+        const oldHash = hash;
+        hash = hash.slice(0, 8);
+        for (i = 0; i < 64; i++) {
+          const w15 = w[i - 15], w2 = w[i - 2];
+          const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15>>>3);
+          const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2>>>10);
+          const ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
+          const maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
+          const temp1 = hash[7] + (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) + ch + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1)|0);
+          const temp2 = (rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj;
+          hash = [(temp1 + temp2)|0].concat(hash);
+          hash[4] = (hash[4] + temp1)|0;
+        }
+        for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i])|0;
+      }
+      for (i = 0; i < 8; i++) {
+        for (let b = 3; b >= 0; b--) {
+          const byte = (hash[i] >> (b * 8)) & 255;
+          result += ((byte < 16) ? '0' : '') + byte.toString(16);
+        }
+      }
+      return result;
+    }
+
+    function generateSignedArceusKey(planType) {
+      const planCodeMap = { '7jours': '7J', '1mois': '1M', '1an': '1A', 'vie': 'VIE' };
+      const pCode = planCodeMap[planType] || '1M';
+      const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+      const salt = Array.from({length:4}, () => alphabet[Math.floor(Math.random()*alphabet.length)]).join('');
+      const raw = `ARCEUS:${ARCEUS_MASTER_SECRET}:${pCode}:${salt}`;
+      const hashHex = sha256_sync(raw);
+      const sig = hashHex.substring(0, 4).toUpperCase();
+      return `ARCEUS-${pCode}-${salt}-${sig}`;
+    }
+
+    // ─── CRÉATION D'UNE LICENCE ───
+    async function handleCreateLicense(e) {
+      e.preventDefault();
+      const plan = document.getElementById('genPlanSelect').value;
+      const email = document.getElementById('genEmailInput').value.trim();
+
+      // Générateur cryptographique officiel ARCEUS scellé par signature maître
+      const newKey = generateSignedArceusKey(plan);
+
+      const durMap = { '7jours': 7*86400, '1mois': 30*86400, '1an': 365*86400, 'vie': -1 };
+      const durSec = durMap[plan] || -1;
+      const nowSec = Date.now() / 1000;
+      const expSec = durSec > 0 ? (nowSec + durSec) : null;
+
+      const newLic = {
+        key: newKey,
+        plan: plan,
+        created_at: nowSec,
+        expires_at: expSec,
+        is_lifetime: (durSec === -1),
+        bound_pseudo: email ? email.split('@')[0] : 'Client',
+        is_active: false,
+        remaining_seconds: durSec
+      };
+
+      // Enregistre en direct dans Supabase Cloud
+      try {
+        await supabaseFetch('licenses', {
+          method: 'POST',
+          body: JSON.stringify({
+            key: newKey,
+            plan: plan,
+            duration_seconds: durSec,
+            created_at: nowSec,
+            expires_at: expSec,
+            bound_pseudo: email ? email.split('@')[0] : 'Client',
+            is_revoked: false
+          })
+        });
+      } catch (err) {}
+
+      newLic.key = newKey;
+      licensesData.unshift(newLic);
+      saveLocalCache();
+      renderAll();
+
+      // Affiche le bandeau vert
+      document.getElementById('genKeyString').textContent = newKey;
+      document.getElementById('genPlanInfo').textContent = `[${plan.toUpperCase()}]`;
+      document.getElementById('keyGeneratedAlert').classList.add('active');
+      document.getElementById('genEmailInput').value = '';
+
+      copyText(newKey);
+    }
+
+    function copyGenKey() {
+      const k = document.getElementById('genKeyString').textContent;
+      copyText(k);
+    }
+
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt).then(() => {
+        alert('Copié dans le presse-papier : ' + txt);
+      });
+    }
+
+    async function revokeKey(key) {
+      if (!confirm(`Êtes-vous sûr de vouloir bannir/révoquer immédiatement la clé ${key} ?\nLe joueur sera éjecté de CS2 en direct.`)) return;
+      
+      const item = licensesData.find(l => l.key === key);
+      if (item) {
+        item.is_revoked = true;
+        item.is_active = false;
+        saveLocalCache();
+        renderAll();
+      }
+
+      try {
+        await supabaseFetch(`licenses?key=eq.${encodeURIComponent(key)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ is_revoked: true })
+        });
+        await loadAdminData();
+      } catch (err) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+</body>
+</html>

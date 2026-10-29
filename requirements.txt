@@ -1,0 +1,4 @@
+# ARCEUS // Dépendances Python requises
+# Python 3.10 ou supérieur recommandé (compatible 3.10, 3.11, 3.12, 3.13)
+
+httpx>=0.24.0

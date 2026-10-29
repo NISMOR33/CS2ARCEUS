@@ -1,8 +1,14 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.sqlite3-journal
+licenses_cloud.db
+
+# PyInstaller & Build artifacts
+build/
+dist/
+*.spec.bak
 
 # Edge UI Profile & Cache
 .mesa_ui_profile/
@@ -17,5 +23,17 @@ native/build/
 *.exp
 *.lib
 
+# Temporary test & scratch files
+scratch/
+inspect_*.py
+build_test_package.py
+
 # Screenshots
 Capture d'écran*.png
+
+# Backups & external directories
+backup_arceus_*/
+SITE WEB_BACKUP/
+*.backup*
+*.zip
+Lootline/

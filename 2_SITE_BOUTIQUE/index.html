@@ -50,10 +50,7 @@
   #cur { position: fixed; left: 0; top: 0; width: 30px; height: 30px; border: 1px solid #fff; border-radius: 50%; mix-blend-mode: difference; pointer-events: none; z-index: 70; transition: background .25s; }
   #cur.big { background: #fff; }
   @media (pointer: coarse) { #cur { display: none; } }
-  #intro { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; pointer-events: none; animation: up .5s .3s cubic-bezier(.7,0,.2,1) forwards; }
-  #intro b { font: 600 clamp(2.4rem, 9vw, 6rem) Geist, system-ui, sans-serif; animation: ib .5s both; }
-  @keyframes ib { from { opacity: 0; letter-spacing: .8em; } to { opacity: 1; letter-spacing: .3em; } }
-  @keyframes up { to { transform: translateY(-100%); } }
+  #intro { display: none !important; }
 
   /* Masque de révélation de texte */
   .mk { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .02em .1em; }
@@ -61,6 +58,16 @@
   .rv-t.vu .mk > span { transform: none; }
   .js .rv { opacity: 0; transform: translateY(36px); transition: opacity .9s, transform .9s cubic-bezier(.2,.7,.1,1); transition-delay: calc(var(--d, 0) * 100ms); }
   .js .rv.vu { opacity: 1; transform: none; }
+
+  /* Le Hero est TOUJOURS visible instantanément au chargement (pas d'écran noir) */
+  .hero, .hero h1, .hero p, .hero .acts, .hero .conf, .hero .sc, .hero .eq {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+  }
+  .hero .mk > span {
+    transform: none !important;
+  }
   .sp { position: relative; overflow: hidden; }
   .sp::before { content: ""; position: absolute; inset: 0; background: radial-gradient(320px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,.14), transparent 60%); opacity: 0; transition: opacity .3s; pointer-events: none; }
   .sp:hover::before { opacity: 1; }
@@ -77,9 +84,9 @@
   @keyframes sc { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 
   /* Canvas 3D Duel */
-  #duel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; filter: grayscale(1) contrast(1.12); -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
-  #duel.ok { opacity: 1; transition: opacity .5s ease-out; }
-  @media (max-width: 999px) { #duel.ok { opacity: .55; } }
+  #duel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 1; filter: grayscale(1) contrast(1.12); -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); transition: opacity .4s ease-out; }
+  #duel.ok { opacity: 1; }
+  @media (max-width: 999px) { #duel { opacity: .75; } }
   .eq { position: absolute; z-index: 1; bottom: 34px; font: 500 .75rem var(--m); letter-spacing: .14em; text-transform: uppercase; color: var(--g); }
   .eq.l { left: max(4vw, 24px); } .eq.r { right: max(4vw, 24px); }
 
@@ -279,7 +286,6 @@
 <canvas id="sphere-fond" aria-hidden="true"></canvas>
 <canvas id="objets" aria-hidden="true"></canvas>
 <div id="prog"></div><div id="cur" aria-hidden="true"></div>
-<div id="intro" aria-hidden="true"><b>ARCEUS</b></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-g" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
@@ -568,7 +574,7 @@
   let T = 0, but = 0;
   const grille = document.querySelector('.grille');
   const aller = v => { but = v; grille.classList.toggle('on', !!v); if (reduit) T = v ? DUREE : 0; };
-  if (grille) new IntersectionObserver(e => aller(e[0].isIntersecting ? 1 : 0), { rootMargin: '-35% 0px -35% 0px' }).observe(grille);
+  if (grille) new IntersectionObserver(e => aller(e[0].isIntersecting ? 1 : 0), { rootMargin: '100px 0px' }).observe(grille);
 
   const liens = [...document.querySelectorAll('.nav a:not(.logo)')];
   const spy = new IntersectionObserver(es => es.forEach(e => {
@@ -673,17 +679,19 @@
   const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $$ = q => [...document.querySelectorAll(q)];
 
-  $$('h1, h2').forEach(h => {
+  $$('h2').forEach(h => {
     h.innerHTML = h.textContent.trim().split(' ').map((w, i) => `<span class="mk"><span style="--i:${i}">${w}</span></span>`).join(' ');
     h.classList.add('rv-t');
   });
 
   $$('.mt').forEach(t => t.append(t.firstElementChild.cloneNode(true)));
 
-  const cibles = $$('.rv-t, .g3 > div, figure, .stats > div, .pas li, details, .hero p, .hero .acts, .note, section .w > p.g, .fin form');
+  const cibles = $$('.rv-t, .g3 > div, figure, .stats > div, .pas li, details, .note, section .w > p.g, .fin form');
   cibles.forEach(e => { if (!e.classList.contains('rv-t')) { e.classList.add('rv'); e.style.setProperty('--d', [...e.parentNode.children].indexOf(e)); } });
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); } }), { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
-  setTimeout(() => cibles.forEach(e => io.observe(e)), reduit ? 0 : 1500);
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); } }), { threshold: 0.05, rootMargin: '80px 0px' });
+  cibles.forEach(e => io.observe(e));
+  // Révélation immédiate si déjà dans la fenêtre visible
+  cibles.forEach(e => { const r = e.getBoundingClientRect(); if (r.top < window.innerHeight + 60) e.classList.add('vu'); });
 
   $$('.g3 > div, figure').forEach(e => {
     e.classList.add('sp');

@@ -865,18 +865,18 @@ if (cvO) {
       if (!o.g.visible) return;
       visibleObj = true;
 
-      // ANIMATION 100% PROPRE ET AUTONOME : AUCUNE RÉACTION À LA SOURIS
+      // ANIMATION 100% AUTONOME : OSCILLATION DOUCE GAUCHE / DROITE SANS 360 (AUCUNE REACTION SOURIS)
       const s = Math.min(r.width * 0.95 / o.L, r.height * 0.95 / o.Hh) * (0.6 + 0.4 * o.vu);
       o.g.scale.setScalar(s);
       o.g.position.set(
         r.left + r.width / 2 - W / 2,
-        Hh / 2 - (r.top + r.height / 2) + (reduit ? 0 : Math.sin(t * 1.5 + o.ph) * 3.5),
+        Hh / 2 - (r.top + r.height / 2) + (reduit ? 0 : Math.sin(t * 1.4 + o.ph) * 3),
         0
       );
-      // Rotation fluide continue 360° sur l'axe Y + oscillations naturelles d'ambiance
-      o.g.rotation.y = reduit ? 0.35 : (t * 0.75 + o.ph);
-      o.g.rotation.x = reduit ? 0 : Math.sin(t * 0.8 + o.ph) * 0.06;
-      o.g.rotation.z = reduit ? 0 : Math.cos(t * 0.6 + o.ph) * 0.04;
+      // Balancement lent et élégant de gauche à droite
+      o.g.rotation.y = reduit ? 0.35 : Math.sin(t * 0.6 + o.ph) * 0.52;
+      o.g.rotation.x = reduit ? 0 : Math.sin(t * 0.7 + o.ph) * 0.06;
+      o.g.rotation.z = 0;
       o.mats.forEach(mt => mt.color.setScalar(1.0));
     });
     if (visibleObj) rO.render(sO, cO); else rO.clear();

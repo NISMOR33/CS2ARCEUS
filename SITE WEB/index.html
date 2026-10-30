@@ -18,6 +18,7 @@
   html { background: #000; scroll-behavior: smooth; }
   body { margin: 0; color: #fff; font: 400 1rem/1.6 Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
   #sphere-fond { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+  #objets { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; filter: grayscale(1) contrast(1.1); }
   main, section, footer { position: relative; z-index: 2; }
   a { color: inherit; }
   section { padding: clamp(80px, 12vw, 150px) 20px; scroll-margin-top: 40px; }
@@ -63,7 +64,7 @@
   .sp:hover::before { opacity: 1; }
   figure.sp:hover { border-color: rgba(255,255,255,.4); }
 
-  /* Accueil & 3D Hero */
+  /* Accueil & 3D Hero Duel (CT & T) */
   .hero { min-height: 100svh; padding-top: max(120px, 18vh); text-align: center; position: relative; will-change: transform, opacity; }
   .hero > :not(canvas):not(.sc):not(.eq) { position: relative; z-index: 1; }
   .hero h1 { font-size: clamp(2.7rem, 7.4vw, 5.8rem); line-height: 1; letter-spacing: -.045em; font-weight: 600; margin: 0 auto 22px; max-width: 11em; }
@@ -108,13 +109,13 @@
   .pas h3 { font-size: 1.5rem; letter-spacing: -.02em; margin: 0; }
   .pas p { color: #b5b5b5; }
 
-  /* Offres */
-  .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 50px; }
+  /* Offres & Vitrines 3D Armes */
+  .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 50px; }
   @media (max-width: 1040px) { .grille { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 640px) { .grille { grid-template-columns: 1fr; } }
-  .card { padding: 30px 28px 28px; }
+  .card { padding: 26px 22px 24px; }
   .card .desc { color: var(--g); font-size: .9rem; }
-  .prix { display: flex; align-items: baseline; gap: 6px; margin: 20px 0 16px; font-size: clamp(2.2rem, 4vw, 2.9rem); font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .prix { display: flex; align-items: baseline; gap: 6px; margin: 18px 0 16px; font-size: clamp(2.2rem, 4vw, 2.9rem); font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
   .prix small { font-size: .9rem; font-weight: 400; color: var(--g); letter-spacing: 0; }
   .card ul { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 10px; font-size: .93rem; color: #d0d0d0; }
   .card li { display: flex; align-items: center; gap: 10px; }
@@ -122,7 +123,14 @@
   .cta { width: 100%; }
   .card > * { opacity: 0; transform: translateY(12px); transition: opacity .35s, transform .35s; }
   .grille.on .card > * { opacity: 1; transform: none; transition: opacity .7s, transform .7s; transition-delay: calc(1.3s + var(--c) * .15s + var(--n) * .08s); }
-  .card > :nth-child(1) { --n: 0; } .card > :nth-child(2) { --n: 1; } .card > :nth-child(3) { --n: 2; } .card > :nth-child(4) { --n: 3; } .card > :nth-child(5) { --n: 4; }
+  .card > :nth-child(1) { --n: 0; } .card > :nth-child(2) { --n: 1; } .card > :nth-child(3) { --n: 2; } .card > :nth-child(4) { --n: 3; } .card > :nth-child(5) { --n: 4; } .card > :nth-child(6) { --n: 5; }
+
+  /* Vitrines 3D Armes & Bombe C4 */
+  .vit { height: 118px; margin: -4px 0 6px; }
+  .vit.c4 { width: min(260px, 70%); height: 150px; margin: 0 auto 8px; }
+  .timer { margin: 0 0 24px; font: 600 1.05rem var(--m); letter-spacing: .2em; }
+  .timer span { display: inline-block; padding: 6px 14px; border: 1px solid var(--l); border-radius: 8px; transition: background .15s, color .15s; }
+  .timer.boom span { background: #fff; color: #000; }
 
   /* Avis */
   .note { display: flex; align-items: baseline; gap: 14px; margin-bottom: 44px; color: var(--g); }
@@ -157,6 +165,7 @@
   .credit a:hover { color: #fff; }
 
   @media (max-width: 800px) {
+    .vit { height: 90px; }
     .nav { top: 10px; gap: 4px; } .nav a { padding: 0 11px; } .nav a span { display: none; } .nav a[aria-current] span { display: inline; }
     .g3, .grille { grid-template-columns: 1fr; } .grille { gap: 14px; }
     .stats { grid-template-columns: 1fr 1fr; margin-top: 60px; }
@@ -247,6 +256,7 @@
 <body>
 
 <canvas id="sphere-fond" aria-hidden="true"></canvas>
+<canvas id="objets" aria-hidden="true"></canvas>
 <div id="prog"></div><div id="cur" aria-hidden="true"></div>
 <div id="intro" aria-hidden="true"><b>ARCEUS</b></div>
 
@@ -325,24 +335,28 @@
       <p class="g">Paiement ultra-sécurisé par carte bancaire avec Stripe. Délivrance de licence instantanée à l'écran.</p>
       <div class="grille">
         <article class="card" style="--c:0">
+          <div class="vit" data-m="deagle"></div>
           <h3>ARCEUS Pass 7J</h3><p class="desc">Idéal pour tester un week-end</p>
           <div class="prix">4,99 € <small>/ semaine</small></div>
           <ul><li>Accès intégral 7 jours</li><li>Tous couteaux, gants & armes</li><li>Presets Pro téléchargeables</li><li>Protection Ring-0 VAC Safe</li><li>Support Discord 24/7</li></ul>
           <button class="cta" type="button" onclick="openCheckout('semaine')">Commander 7J</button>
         </article>
         <article class="card" style="--c:1">
+          <div class="vit" data-m="ak47"></div>
           <h3>ARCEUS Mensuel</h3><p class="desc">Pour les joueurs réguliers</p>
           <div class="prix">14,99 € <small>/ mois</small></div>
           <ul><li>Accès intégral 30 jours</li><li>Mises à jour prioritaires CS2</li><li>StatTrak™ & Float custom</li><li>Profils sauvegardés dans le cloud</li><li>Support VIP dédié</li></ul>
           <button class="cta pl" type="button" onclick="openCheckout('mois')">Commander 1 Mois</button>
         </article>
         <article class="card" style="--c:2">
+          <div class="vit" data-m="awp"></div>
           <h3>ARCEUS Trimestre</h3><p class="desc">Le choix le plus populaire</p>
           <div class="prix">29,99 € <small>/ 3 mois</small></div>
           <ul><li>Accès intégral 90 jours</li><li>Économisez 33% sur l'année</li><li>Accès anticipé nouvelles armes</li><li>Support prioritaire niveau 2</li><li>Garantie Zéro Détection</li></ul>
           <button class="cta" type="button" onclick="openCheckout('trimestre')">Commander 3 Mois</button>
         </article>
         <article class="card" style="--c:3">
+          <div class="vit" data-m="karambit"></div>
           <h3>ARCEUS Lifetime</h3><p class="desc">Accès définitif à vie</p>
           <div class="prix">59,99 € <small>/ unique</small></div>
           <ul><li>Licence permanente à vie</li><li>Mises à jour majeures gratuites</li><li>Badge VIP exclusif communauté</li><li>Accès canal privé développeurs</li><li>Support personnalisé 1-on-1</li></ul>
@@ -380,6 +394,8 @@
 
   <section class="fin" id="fin">
     <div class="w">
+      <div class="vit c4" data-m="c4"></div>
+      <p class="timer" aria-hidden="true"><span id="t4">00:40</span></p>
       <h2>Rejoignez l'élite CS2 dès aujourd'hui.</h2>
       <p class="g">Délivrance immédiate de votre licence et accès au launcher sécurisé.</p>
       <div style="margin-top: 30px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
@@ -395,7 +411,7 @@
     <span>© 2026 ARCEUS. Tous droits réservés.</span>
     <nav aria-label="Pied de page"><a href="#">Mentions légales</a><a href="#">Confidentialité</a><a href="#">CGV</a><a href="#">Contact</a></nav>
   </div>
-  <p class="credit">Modèles 3D « <a href="https://sketchfab.com/3d-models/counter-strike-2-ct-e44511c308ac4e93b9194a6dbe37b0be" target="_blank" rel="noopener">Counter-Strike 2 ct</a> » et « <a href="https://sketchfab.com/3d-models/counter-strike-2-t-0ee7966dd9a44180b085cf3f582c3257" target="_blank" rel="noopener">Counter-Strike 2 t</a> » par <a href="https://sketchfab.com/horror-1" target="_blank" rel="noopener">horror</a>, sous licence <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</p>
+  <p class="credit">Modèles 3D sous licence <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (images modifiées : réduction textures, noir et blanc) : « <a href="https://sketchfab.com/3d-models/counter-strike-2-ct-e44511c308ac4e93b9194a6dbe37b0be" target="_blank" rel="noopener">Counter-Strike 2 ct</a> » et « <a href="https://sketchfab.com/3d-models/counter-strike-2-t-0ee7966dd9a44180b085cf3f582c3257" target="_blank" rel="noopener">Counter-Strike 2 t</a> » par <a href="https://sketchfab.com/horror-1" target="_blank" rel="noopener">horror</a> ; « <a href="https://sketchfab.com/3d-models/rifle-ak-47-weapon-model-cs2-6b2244ba66274c71abdd194d0b04f731" target="_blank" rel="noopener">AK-47</a> », « <a href="https://sketchfab.com/3d-models/rifle-awp-weapon-model-cs2-23ad3d7fb46b40e59cab7937654e2691" target="_blank" rel="noopener">AWP</a> », « <a href="https://sketchfab.com/3d-models/pistol-desert-eagle-weapon-model-cs2-ffff93713abe49fbbe62eba3eea2b287" target="_blank" rel="noopener">Desert Eagle</a> » et « <a href="https://sketchfab.com/3d-models/bomb-c4-explosive-model-cs2-ca14fcc22cda4b2dbd8bf6c936285bac" target="_blank" rel="noopener">C4</a> » par <a href="https://sketchfab.com/6lucius" target="_blank" rel="noopener">6lucius</a> ; « <a href="https://sketchfab.com/3d-models/karambit-dfd7606f189a413681305a39b8841ce8" target="_blank" rel="noopener">Karambit</a> » par <a href="https://sketchfab.com/Diamonddogkz" target="_blank" rel="noopener">Diamonddogkz</a>.</p>
   <div class="mot" aria-hidden="true">ARCEUS</div>
 </footer>
 
@@ -444,8 +460,8 @@
   const RAYON = 0.49;            // rayon de la sphère
   const HAUT = 0.62, BAS = 0.95, FIN = 0.55;
   const VIT = 0.10, INC = 0.25, TP = 1.5, PERS = 4;
-  const PART = 0.15;             // part dessinant les cartes
-  const DUREE = 2.4, DP = 0.9;
+  const PART = 0.20;             // part dessinant les cartes
+  const DUREE = 2.6, DP = 0.9;
   const RR = 130, RF = 4;        // répulsion continue
   const ER = 430, EF = 44;       // onde d'impulsion
   const RAPPEL = 0.012, AMORT = 0.91;
@@ -463,7 +479,7 @@
     pts[i * 3] = Math.cos(t) * r; pts[i * 3 + 1] = y; pts[i * 3 + 2] = Math.sin(t) * r;
     lum[i] = 0.35 + Math.random() * 0.65; al[i] = 0.5 + Math.random();
     if (Math.random() < PART) {
-      const k = c++ % 4; // 4 cartes
+      const k = c++ % 4; // 4 cartes de tarifs
       carte[i] = k; u[i] = Math.random();
       dl[i] = 0.1 + k * 0.12 + u[i] * 0.9 + Math.random() * 0.15;
       cX[i] = (Math.random() - 0.5) * 260; cY[i] = (Math.random() - 0.5) * 260;
@@ -679,13 +695,14 @@
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCRIPT 3: CHARGEMENT DES MODELES 3D CS2 (CT & T) VIA THREE.JS
+     SCRIPT 3: RENDU 3D THREE.JS (HERO DUEL CT/T + ARMES TARIFS + BOMBE C4)
      ═══════════════════════════════════════════════════════════════ -->
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+// --- 1. Rendu Duel Hero (Personnages CT & T) ---
 const ROT_CT = 1.75, ROT_T = -1.13;
 const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cv = document.getElementById('duel');
@@ -716,7 +733,7 @@ if (cv) {
       p.g.add(m);
       m.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(mt => mt.color && p.mats.push(mt)); });
       if (++charges === persos.length) cv.classList.add('ok');
-    }, undefined, e => console.warn('Modèle 3D introuvable :', p.url, e));
+    }, undefined, e => console.warn('Modèle 3D perso introuvable :', p.url, e));
   });
 
   let w = 1, h = 1, mx = 0, kick = 0, visible = true;
@@ -752,6 +769,98 @@ if (cv) {
       p.mats.forEach(mt => mt.color.setScalar(0.8 + 0.7 * p.act + kick * 0.5));
     });
     renderer.render(scene, cam);
+  })();
+}
+
+// --- 2. Rendu Armes Tarifs & Bombe C4 (Multi-viewport sur #objets) ---
+const cvO = document.getElementById('objets');
+if (cvO) {
+  const rO = new THREE.WebGLRenderer({ canvas: cvO, alpha: true, antialias: true });
+  rO.setPixelRatio(Math.min(devicePixelRatio, 2));
+  rO.outputColorSpace = THREE.SRGBColorSpace;
+  rO.toneMapping = THREE.ACESFilmicToneMapping;
+  const sO = new THREE.Scene(), cO = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 4000);
+  cO.position.z = 2000;
+  sO.add(new THREE.HemisphereLight(0xffffff, 0x222222, 1.6));
+  [[0.3, 0.6, 1, 2.8], [-1, 0.4, -0.6, 2.2], [1, 0.4, -0.6, 2.2]].forEach(([x, y, z, i]) => {
+    const l = new THREE.DirectionalLight(0xffffff, i); l.position.set(x, y, z); sO.add(l);
+  });
+
+  const grilleO = document.querySelector('.grille');
+  let W = 1, Hh = 1, px = -1, py = -1;
+  function tailleO() {
+    W = innerWidth; Hh = innerHeight;
+    rO.setSize(W, Hh, false);
+    cO.left = -W / 2; cO.right = W / 2; cO.top = Hh / 2; cO.bottom = -Hh / 2; cO.updateProjectionMatrix();
+  }
+  addEventListener('resize', tailleO); tailleO();
+  addEventListener('pointermove', e => { px = e.clientX; py = e.clientY; });
+
+  const objets = [...document.querySelectorAll('.vit')].map(el => ({
+    el, g: new THREE.Group(), mats: [], act: 0, vu: 0, ph: Math.random() * 6
+  }));
+
+  objets.forEach(o => {
+    sO.add(o.g); o.g.visible = false;
+    new GLTFLoader().load('models/' + o.el.dataset.m + '.glb', g => {
+      const m = g.scene; m.updateMatrixWorld(true);
+      m.traverse(n => { if (n.isMesh) n.frustumCulled = false; if (n.isSkinnedMesh) n.skeleton.update(); });
+      const box = new THREE.Box3().setFromObject(m, true), sz = box.getSize(new THREE.Vector3());
+      m.position.sub(box.getCenter(new THREE.Vector3()));
+      const inner = new THREE.Group(); inner.add(m);
+      const v = [sz.x, sz.y, sz.z], ax = [0, 1, 2].sort((a, b) => v[b] - v[a]);
+      const mat = new Array(16).fill(0); mat[15] = 1;
+      ax.forEach((a, k) => { mat[k * 4 + a] = 1; });
+      const inv = (ax[0] > ax[1]) + (ax[0] > ax[2]) + (ax[1] > ax[2]);
+      if (inv % 2) mat[2 * 4 + ax[2]] = -1;
+      inner.quaternion.setFromRotationMatrix(new THREE.Matrix4().set(...mat));
+      o.L = v[ax[0]]; o.Hh = v[ax[1]];
+      o.g.add(inner);
+      m.traverse(n => { if (n.isMesh) [].concat(n.material).forEach(mt => mt.color && o.mats.push(mt)); });
+    }, undefined, e => console.warn('Modèle arme/C4 introuvable :', o.el.dataset.m, e));
+  });
+
+  const c4 = objets.find(o => o.el.classList.contains('c4'));
+  const t4 = document.getElementById('t4');
+  let reste = 40;
+  if (t4) setInterval(() => {
+    reste = reste > 0 ? reste - 1 : 40;
+    t4.textContent = '00:' + String(reste).padStart(2, '0');
+    if (reste === 0) {
+      t4.parentNode.classList.add('boom');
+      setTimeout(() => t4.parentNode.classList.remove('boom'), 350);
+      if (c4 && c4.vu > 0.5 && !reduit) {
+        const r = c4.el.getBoundingClientRect();
+        document.body.dispatchEvent(new PointerEvent('pointerdown', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true }));
+      }
+    }
+  }, 1000);
+
+  const horlogeO = new THREE.Clock();
+  (function boucleO() {
+    requestAnimationFrame(boucleO);
+    const t = horlogeO.getElapsedTime();
+    let visibleObj = false;
+    objets.forEach(o => {
+      if (!o.L) return;
+      const r = o.el.getBoundingClientRect();
+      const dansCarte = o.el.closest('.card');
+      const zone = dansCarte ? dansCarte.getBoundingClientRect() : r;
+      const present = r.bottom > 0 && r.top < Hh && r.width > 0 && (dansCarte ? (grilleO ? grilleO.classList.contains('on') : true) : true);
+      o.vu += ((present ? 1 : 0) - o.vu) * 0.07;
+      o.g.visible = o.vu > 0.01;
+      if (!o.g.visible) return;
+      visibleObj = true;
+      const survol = px > zone.left && px < zone.right && py > zone.top && py < zone.bottom ? 1 : 0;
+      o.act += (survol - o.act) * 0.1;
+      const s = Math.min(r.width * 0.95 / o.L, r.height * 0.95 / o.Hh) * (0.6 + 0.4 * o.vu) * (1 + 0.14 * o.act);
+      o.g.scale.setScalar(s);
+      o.g.position.set(r.left + r.width / 2 - W / 2, Hh / 2 - (r.top + r.height / 2) + (reduit ? 0 : Math.sin(t * 1.4 + o.ph) * 3), 0);
+      o.g.rotation.y = reduit ? 0.35 : Math.sin(t * (0.6 + o.act * 1.4) + o.ph) * (0.55 + 0.45 * o.act);
+      o.g.rotation.x = reduit ? 0 : Math.sin(t * 0.7 + o.ph) * 0.08;
+      o.mats.forEach(mt => mt.color.setScalar(0.85 + 0.5 * o.act));
+    });
+    if (visibleObj) rO.render(sO, cO); else rO.clear();
   })();
 }
 </script>

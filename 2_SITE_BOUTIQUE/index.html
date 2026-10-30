@@ -400,6 +400,67 @@
     overflow-y: auto;
   }
 
+  /* Slider / Scrollbar Personnalisé Haut de Gamme à Droite */
+  .modal-side-payment::-webkit-scrollbar,
+  .modal-checkout-grand::-webkit-scrollbar {
+    width: 6px;
+  }
+  .modal-side-payment::-webkit-scrollbar-track,
+  .modal-checkout-grand::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+  }
+  .modal-side-payment::-webkit-scrollbar-thumb,
+  .modal-checkout-grand::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .modal-side-payment::-webkit-scrollbar-thumb:hover,
+  .modal-checkout-grand::-webkit-scrollbar-thumb:hover {
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  .modal-side-payment,
+  .modal-checkout-grand {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.02);
+  }
+
+  /* Sélecteur / Slider d'Offres Personnalisé à Droite */
+  .modal-plan-selector {
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .modal-plan-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #8c8f96;
+    font-family: var(--m);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    padding: 6px 3px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+    text-align: center;
+  }
+  .modal-plan-tab:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .modal-plan-tab.active {
+    background: #ffffff;
+    color: #000000;
+  }
+
   .modal-pay-header {
     margin-bottom: 10px;
     padding-right: 32px;
@@ -831,6 +892,12 @@
     <!-- COLONNE DROITE : FORMULAIRE STRIPE ÉPURÉ & OPTIMISÉ -->
     <div class="modal-side-payment">
       <div class="modal-pay-header">
+        <div class="modal-plan-selector" role="tablist" aria-label="Choisir une offre">
+          <button type="button" class="modal-plan-tab" data-plan="semaine" onclick="openCheckout('semaine')">7 JOURS</button>
+          <button type="button" class="modal-plan-tab" data-plan="mois" onclick="openCheckout('mois')">1 MOIS</button>
+          <button type="button" class="modal-plan-tab" data-plan="trimestre" onclick="openCheckout('trimestre')">3 MOIS</button>
+          <button type="button" class="modal-plan-tab" data-plan="lifetime" onclick="openCheckout('lifetime')">LIFETIME</button>
+        </div>
         <h4>CHECKOUT SÉCURISÉ // STRIPE</h4>
         <p>Validez votre paiement pour obtenir votre clé de licence sans délai.</p>
       </div>
@@ -1568,6 +1635,10 @@ window.__updateModal3D = function(type) {
     if (btnLabel) btnLabel.textContent = `CONFIRMER LE PAIEMENT (${prod.amount}) →`;
     if (errEl) errEl.textContent = 'Préparation du paiement sécurisé…';
 
+    document.querySelectorAll('.modal-plan-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.plan === planKey);
+    });
+
     const modal = document.getElementById('checkoutModal');
     if (modal) modal.classList.add('active');
 
@@ -1685,11 +1756,24 @@ window.__updateModal3D = function(type) {
     btnLabel.textContent = 'PAIEMENT SÉCURISÉ EN COURS…';
 
     try {
+      let userCountry = 'FR';
+      try {
+        const loc = navigator.language || 'fr-FR';
+        if (loc.includes('-')) userCountry = loc.split('-')[1].toUpperCase();
+      } catch (e) {}
+
       const result = await stripeInstance.confirmPayment({
         elements: stripeElements,
         confirmParams: {
           return_url: `${location.origin}${location.pathname}?payment=return`,
-          payment_method_data: { billing_details: { email } }
+          payment_method_data: {
+            billing_details: {
+              email: email,
+              address: {
+                country: userCountry || 'FR'
+              }
+            }
+          }
         },
         redirect: 'if_required'
       });

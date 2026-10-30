@@ -64,7 +64,7 @@
   .sp:hover::before { opacity: 1; }
   figure.sp:hover { border-color: rgba(255,255,255,.4); }
 
-  /* Accueil & 3D Hero Duel (CT & T) */
+  /* Accueil & 3D Hero Duel */
   .hero { min-height: 100svh; padding-top: max(120px, 18vh); text-align: center; position: relative; will-change: transform, opacity; }
   .hero > :not(canvas):not(.sc):not(.eq) { position: relative; z-index: 1; }
   .hero h1 { font-size: clamp(2.7rem, 7.4vw, 5.8rem); line-height: 1; letter-spacing: -.045em; font-weight: 600; margin: 0 auto 22px; max-width: 11em; }
@@ -74,7 +74,7 @@
   .sc { position: absolute; left: 50%; bottom: 26px; width: 1px; height: 54px; background: linear-gradient(#fff, transparent); transform-origin: top; animation: sc 2s ease-in-out infinite; }
   @keyframes sc { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 
-  /* Canvas 3D Duel (Modèles CT et T) */
+  /* Canvas 3D Duel */
   #duel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; filter: grayscale(1) contrast(1.12); -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
   #duel.ok { opacity: 1; transition: opacity 1.4s 1.6s; }
   @media (max-width: 999px) { #duel.ok { opacity: .55; } }
@@ -110,12 +110,12 @@
   .pas p { color: #b5b5b5; }
 
   /* Offres & Vitrines 3D Armes */
-  .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 50px; }
+  .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 30px; }
   @media (max-width: 1040px) { .grille { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 640px) { .grille { grid-template-columns: 1fr; } }
-  .card { padding: 26px 22px 24px; }
+  .card { padding: 26px 22px 24px; position: relative; }
   .card .desc { color: var(--g); font-size: .9rem; }
-  .prix { display: flex; align-items: baseline; gap: 6px; margin: 18px 0 16px; font-size: clamp(2.2rem, 4vw, 2.9rem); font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .prix { display: flex; align-items: baseline; gap: 8px; margin: 18px 0 16px; font-size: clamp(2.2rem, 4vw, 2.9rem); font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
   .prix small { font-size: .9rem; font-weight: 400; color: var(--g); letter-spacing: 0; }
   .card ul { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 10px; font-size: .93rem; color: #d0d0d0; }
   .card li { display: flex; align-items: center; gap: 10px; }
@@ -128,9 +128,8 @@
   /* Vitrines 3D Armes & Bombe C4 */
   .vit { height: 118px; margin: -4px 0 6px; }
   .vit.c4 { width: min(260px, 70%); height: 150px; margin: 0 auto 8px; }
-  .timer { margin: 0 0 24px; font: 600 1.05rem var(--m); letter-spacing: .2em; }
-  .timer span { display: inline-block; padding: 6px 14px; border: 1px solid var(--l); border-radius: 8px; transition: background .15s, color .15s; }
-  .timer.boom span { background: #fff; color: #000; }
+  .timer { margin: 0 0 24px; font: 700 1.25rem var(--m); letter-spacing: .2em; }
+  .timer span { display: inline-block; padding: 8px 18px; border: 1px solid rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.08); color: #f87171; border-radius: 8px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
 
   /* Avis */
   .note { display: flex; align-items: baseline; gap: 14px; margin-bottom: 44px; color: var(--g); }
@@ -284,7 +283,7 @@
     <h1 style="letter-spacing: -0.04em;">Tous les skins CS2. Zéro détection.</h1>
     <p class="s">ARCEUS injecte directement dans Counter-Strike 2 vos couteaux, gants, stickers et inventaires pro en temps réel. Moteur natif Ring-0, invisible pour VAC Live et sans baisse de FPS.</p>
     <div class="acts">
-      <a class="btn pl" href="#offres">OBTENIR UNE LICENCE</a>
+      <a class="btn pl" href="#offres">OBTENIR UNE LICENCE (-25%)</a>
       <a class="btn" href="#methode">Comment ça marche</a>
     </div>
     <p class="conf">Plus de 14 500 joueurs actifs // 0 détection VAC depuis le lancement.</p>
@@ -331,34 +330,74 @@
 
   <section id="offres">
     <div class="w">
-      <h2>Tarifs transparents. Accès immédiat.</h2>
-      <p class="g">Paiement ultra-sécurisé par carte bancaire avec Stripe. Délivrance de licence instantanée à l'écran.</p>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+        <div>
+          <h2>Tarifs & Accès Immédiat.</h2>
+          <p class="g">Paiement sécurisé par carte bancaire avec Stripe. Délivrance de licence instantanée à l'écran.</p>
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); border-radius: 10px; font-family: var(--m); font-size: 12px; font-weight: 700; color: #f87171;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
+          OFFRE FLASH -25% EN COURS // FIN DANS <span id="t4-top" style="color: #fff; margin-left: 4px;">59:45</span>
+        </div>
+      </div>
+
       <div class="grille">
         <article class="card" style="--c:0">
           <div class="vit" data-m="deagle"></div>
-          <h3>ARCEUS Pass 7J</h3><p class="desc">Idéal pour tester un week-end</p>
-          <div class="prix">4,99 € <small>/ semaine</small></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 style="margin:0;">ARCEUS Pass 7J</h3>
+            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
+          </div>
+          <p class="desc">Idéal pour tester un week-end</p>
+          <div class="prix">
+            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">6,99 €</span>
+            4,99 € <small>/ semaine</small>
+          </div>
           <ul><li>Accès intégral 7 jours</li><li>Tous couteaux, gants & armes</li><li>Presets Pro téléchargeables</li><li>Protection Ring-0 VAC Safe</li><li>Support Discord 24/7</li></ul>
           <button class="cta" type="button" onclick="openCheckout('semaine')">Commander 7J</button>
         </article>
+
         <article class="card" style="--c:1">
           <div class="vit" data-m="ak47"></div>
-          <h3>ARCEUS Mensuel</h3><p class="desc">Pour les joueurs réguliers</p>
-          <div class="prix">14,99 € <small>/ mois</small></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 style="margin:0;">ARCEUS Mensuel</h3>
+            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
+          </div>
+          <p class="desc">Pour les joueurs réguliers</p>
+          <div class="prix">
+            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">19,99 €</span>
+            14,99 € <small>/ mois</small>
+          </div>
           <ul><li>Accès intégral 30 jours</li><li>Mises à jour prioritaires CS2</li><li>StatTrak™ & Float custom</li><li>Profils sauvegardés dans le cloud</li><li>Support VIP dédié</li></ul>
           <button class="cta pl" type="button" onclick="openCheckout('mois')">Commander 1 Mois</button>
         </article>
+
         <article class="card" style="--c:2">
           <div class="vit" data-m="awp"></div>
-          <h3>ARCEUS Trimestre</h3><p class="desc">Le choix le plus populaire</p>
-          <div class="prix">29,99 € <small>/ 3 mois</small></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 style="margin:0;">ARCEUS Trimestre</h3>
+            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
+          </div>
+          <p class="desc">Le choix le plus populaire</p>
+          <div class="prix">
+            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">39,99 €</span>
+            29,99 € <small>/ 3 mois</small>
+          </div>
           <ul><li>Accès intégral 90 jours</li><li>Économisez 33% sur l'année</li><li>Accès anticipé nouvelles armes</li><li>Support prioritaire niveau 2</li><li>Garantie Zéro Détection</li></ul>
           <button class="cta" type="button" onclick="openCheckout('trimestre')">Commander 3 Mois</button>
         </article>
+
         <article class="card" style="--c:3">
           <div class="vit" data-m="karambit"></div>
-          <h3>ARCEUS Lifetime</h3><p class="desc">Accès définitif à vie</p>
-          <div class="prix">59,99 € <small>/ unique</small></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 style="margin:0;">ARCEUS Lifetime</h3>
+            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
+          </div>
+          <p class="desc">Accès définitif à vie</p>
+          <div class="prix">
+            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">79,99 €</span>
+            59,99 € <small>/ unique</small>
+          </div>
           <ul><li>Licence permanente à vie</li><li>Mises à jour majeures gratuites</li><li>Badge VIP exclusif communauté</li><li>Accès canal privé développeurs</li><li>Support personnalisé 1-on-1</li></ul>
           <button class="cta pl" type="button" onclick="openCheckout('lifetime')">Accès Lifetime</button>
         </article>
@@ -395,11 +434,14 @@
   <section class="fin" id="fin">
     <div class="w">
       <div class="vit c4" data-m="c4"></div>
-      <p class="timer" aria-hidden="true"><span id="t4">00:40</span></p>
-      <h2>Rejoignez l'élite CS2 dès aujourd'hui.</h2>
-      <p class="g">Délivrance immédiate de votre licence et accès au launcher sécurisé.</p>
+      <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.1); border-radius:8px; color:#f87171; font-family:var(--m); font-size:12px; font-weight:700; margin-bottom:14px; letter-spacing:0.08em;">
+        <span>⚡ OFFRE FLASH // -25% SUR TOUTES LES LICENCES</span>
+      </div>
+      <p class="timer" aria-hidden="true"><span id="t4">59:45</span></p>
+      <h2>Équipez votre inventaire avant la fin du décompte.</h2>
+      <p class="g">La remise de -25% est automatiquement appliquée sur les tarifs affichés. Délivrance immédiate de votre clé.</p>
       <div style="margin-top: 30px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-        <a class="btn pl" href="#offres">COMMANDER UNE LICENCE</a>
+        <a class="btn pl" href="#offres">PROFITER DU -25% MAINTENANT</a>
         <a class="btn" href="https://discord.gg" target="_blank" rel="noopener">REJOINDRE LE DISCORD</a>
       </div>
     </div>
@@ -456,14 +498,14 @@
      ═══════════════════════════════════════════════════════════════ -->
 <script>
 (() => {
-  const NB = 26000;              // nombre de particules
-  const RAYON = 0.49;            // rayon de la sphère
+  const NB = 26000;
+  const RAYON = 0.49;
   const HAUT = 0.62, BAS = 0.95, FIN = 0.55;
   const VIT = 0.10, INC = 0.25, TP = 1.5, PERS = 4;
-  const PART = 0.20;             // part dessinant les cartes
+  const PART = 0.20;
   const DUREE = 2.6, DP = 0.9;
-  const RR = 130, RF = 4;        // répulsion continue
-  const ER = 430, EF = 44;       // onde d'impulsion
+  const RR = 130, RF = 4;
+  const ER = 430, EF = 44;
   const RAPPEL = 0.012, AMORT = 0.91;
 
   const cv = document.getElementById('sphere-fond'), ctx = cv.getContext('2d');
@@ -479,7 +521,7 @@
     pts[i * 3] = Math.cos(t) * r; pts[i * 3 + 1] = y; pts[i * 3 + 2] = Math.sin(t) * r;
     lum[i] = 0.35 + Math.random() * 0.65; al[i] = 0.5 + Math.random();
     if (Math.random() < PART) {
-      const k = c++ % 4; // 4 cartes de tarifs
+      const k = c++ % 4;
       carte[i] = k; u[i] = Math.random();
       dl[i] = 0.1 + k * 0.12 + u[i] * 0.9 + Math.random() * 0.15;
       cX[i] = (Math.random() - 0.5) * 260; cY[i] = (Math.random() - 0.5) * 260;
@@ -695,7 +737,7 @@
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCRIPT 3: RENDU 3D THREE.JS (HERO DUEL CT/T + ARMES TARIFS + BOMBE C4)
+     SCRIPT 3: RENDU 3D THREE.JS (HERO DUEL + ARMES AUTONOMES SANS SOURIS)
      ═══════════════════════════════════════════════════════════════ -->
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -772,7 +814,7 @@ if (cv) {
   })();
 }
 
-// --- 2. Rendu Armes Tarifs & Bombe C4 (Multi-viewport sur #objets) ---
+// --- 2. Rendu Armes & Bombe C4 : ANIMATION 100% AUTONOME (AUCUNE RÉACTION SOURIS) ---
 const cvO = document.getElementById('objets');
 if (cvO) {
   const rO = new THREE.WebGLRenderer({ canvas: cvO, alpha: true, antialias: true });
@@ -787,17 +829,16 @@ if (cvO) {
   });
 
   const grilleO = document.querySelector('.grille');
-  let W = 1, Hh = 1, px = -1, py = -1;
+  let W = 1, Hh = 1;
   function tailleO() {
     W = innerWidth; Hh = innerHeight;
     rO.setSize(W, Hh, false);
     cO.left = -W / 2; cO.right = W / 2; cO.top = Hh / 2; cO.bottom = -Hh / 2; cO.updateProjectionMatrix();
   }
   addEventListener('resize', tailleO); tailleO();
-  addEventListener('pointermove', e => { px = e.clientX; py = e.clientY; });
 
   const objets = [...document.querySelectorAll('.vit')].map(el => ({
-    el, g: new THREE.Group(), mats: [], act: 0, vu: 0, ph: Math.random() * 6
+    el, g: new THREE.Group(), mats: [], vu: 0, ph: Math.random() * 6.28
   }));
 
   objets.forEach(o => {
@@ -820,22 +861,6 @@ if (cvO) {
     }, undefined, e => console.warn('Modèle arme/C4 introuvable :', o.el.dataset.m, e));
   });
 
-  const c4 = objets.find(o => o.el.classList.contains('c4'));
-  const t4 = document.getElementById('t4');
-  let reste = 40;
-  if (t4) setInterval(() => {
-    reste = reste > 0 ? reste - 1 : 40;
-    t4.textContent = '00:' + String(reste).padStart(2, '0');
-    if (reste === 0) {
-      t4.parentNode.classList.add('boom');
-      setTimeout(() => t4.parentNode.classList.remove('boom'), 350);
-      if (c4 && c4.vu > 0.5 && !reduit) {
-        const r = c4.el.getBoundingClientRect();
-        document.body.dispatchEvent(new PointerEvent('pointerdown', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true }));
-      }
-    }
-  }, 1000);
-
   const horlogeO = new THREE.Clock();
   (function boucleO() {
     requestAnimationFrame(boucleO);
@@ -845,24 +870,54 @@ if (cvO) {
       if (!o.L) return;
       const r = o.el.getBoundingClientRect();
       const dansCarte = o.el.closest('.card');
-      const zone = dansCarte ? dansCarte.getBoundingClientRect() : r;
       const present = r.bottom > 0 && r.top < Hh && r.width > 0 && (dansCarte ? (grilleO ? grilleO.classList.contains('on') : true) : true);
       o.vu += ((present ? 1 : 0) - o.vu) * 0.07;
       o.g.visible = o.vu > 0.01;
       if (!o.g.visible) return;
       visibleObj = true;
-      const survol = px > zone.left && px < zone.right && py > zone.top && py < zone.bottom ? 1 : 0;
-      o.act += (survol - o.act) * 0.1;
-      const s = Math.min(r.width * 0.95 / o.L, r.height * 0.95 / o.Hh) * (0.6 + 0.4 * o.vu) * (1 + 0.14 * o.act);
+
+      // ANIMATION 100% PROPRE ET AUTONOME : AUCUNE RÉACTION À LA SOURIS
+      const s = Math.min(r.width * 0.95 / o.L, r.height * 0.95 / o.Hh) * (0.6 + 0.4 * o.vu);
       o.g.scale.setScalar(s);
-      o.g.position.set(r.left + r.width / 2 - W / 2, Hh / 2 - (r.top + r.height / 2) + (reduit ? 0 : Math.sin(t * 1.4 + o.ph) * 3), 0);
-      o.g.rotation.y = reduit ? 0.35 : Math.sin(t * (0.6 + o.act * 1.4) + o.ph) * (0.55 + 0.45 * o.act);
-      o.g.rotation.x = reduit ? 0 : Math.sin(t * 0.7 + o.ph) * 0.08;
-      o.mats.forEach(mt => mt.color.setScalar(0.85 + 0.5 * o.act));
+      o.g.position.set(
+        r.left + r.width / 2 - W / 2,
+        Hh / 2 - (r.top + r.height / 2) + (reduit ? 0 : Math.sin(t * 1.5 + o.ph) * 3.5),
+        0
+      );
+      // Rotation fluide continue 360° sur l'axe Y + oscillations naturelles d'ambiance
+      o.g.rotation.y = reduit ? 0.35 : (t * 0.75 + o.ph);
+      o.g.rotation.x = reduit ? 0 : Math.sin(t * 0.8 + o.ph) * 0.06;
+      o.g.rotation.z = reduit ? 0 : Math.cos(t * 0.6 + o.ph) * 0.04;
+      o.mats.forEach(mt => mt.color.setScalar(1.0));
     });
     if (visibleObj) rO.render(sO, cO); else rO.clear();
   })();
 }
+
+// --- 3. COMPTE À REBOURS PROMO 1 HEURE (-25%) ---
+const t4 = document.getElementById('t4');
+const t4Top = document.getElementById('t4-top');
+let flashEnd = localStorage.getItem('arx_flash_time');
+const now = Date.now();
+if (!flashEnd || now > parseInt(flashEnd, 10)) {
+  flashEnd = String(now + 59 * 60 * 1000 + 45 * 1000); // 59 minutes 45 secondes
+  localStorage.setItem('arx_flash_time', flashEnd);
+}
+
+function updateFlashTimer() {
+  const remaining = Math.max(0, Math.floor((parseInt(flashEnd, 10) - Date.now()) / 1000));
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  const timeStr = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  if (t4) t4.textContent = timeStr;
+  if (t4Top) t4Top.textContent = timeStr;
+  if (remaining <= 0) {
+    flashEnd = String(Date.now() + 59 * 60 * 1000 + 59 * 1000);
+    localStorage.setItem('arx_flash_time', flashEnd);
+  }
+}
+setInterval(updateFlashTimer, 1000);
+updateFlashTimer();
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -874,7 +929,7 @@ if (cvO) {
       key: 'weekly',
       priceId: 'price_1UVq9u4B9y6vJovVJbXzpLuT',
       productId: 'prod_VWtxoONbrZbALd',
-      name: 'LICENSE 7 JOURS',
+      name: 'LICENSE 7 JOURS (-25%)',
       amount: '4,99 €',
       cents: 499
     },
@@ -882,7 +937,7 @@ if (cvO) {
       key: 'monthly',
       priceId: 'price_1UVqD44B9y6vJovVO0gjgpE6',
       productId: 'prod_VWtxhGzZp6n36T',
-      name: 'LICENSE 30 JOURS',
+      name: 'LICENSE 30 JOURS (-25%)',
       amount: '14,99 €',
       cents: 1499
     },
@@ -890,7 +945,7 @@ if (cvO) {
       key: 'quarterly',
       priceId: 'price_1UVqEB4B9y6vJovVU2qH5e1h',
       productId: 'prod_VWtxpWl5X1t9rB',
-      name: 'LICENSE 90 JOURS',
+      name: 'LICENSE 90 JOURS (-25%)',
       amount: '29,99 €',
       cents: 2999
     },
@@ -898,7 +953,7 @@ if (cvO) {
       key: 'lifetime',
       priceId: 'price_1UVqEg4B9y6vJovV31eB65jZ',
       productId: 'prod_VWtxxRkH7K7k1H',
-      name: 'LICENSE LIFETIME (À VIE)',
+      name: 'LICENSE LIFETIME (-25%)',
       amount: '59,99 €',
       cents: 5999
     }
@@ -943,7 +998,7 @@ if (cvO) {
     const errEl = document.getElementById('stripeErrText');
 
     if (modalTitle) modalTitle.textContent = `COMMANDE // ${prod.name}`;
-    if (modalSub) modalSub.textContent = `Montant : ${prod.amount} — Délivrance instantanée de votre clé.`;
+    if (modalSub) modalSub.textContent = `Montant : ${prod.amount} — Offre Flash -25% appliquée, clé délivrée immédiatement.`;
     if (btnLabel) btnLabel.textContent = `CONFIRMER LE PAIEMENT (${prod.amount}) →`;
     if (errEl) errEl.textContent = '';
 

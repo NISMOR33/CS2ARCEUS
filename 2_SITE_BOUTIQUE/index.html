@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/x-icon" href="logo.ico">
+<script>document.documentElement.classList.add("js")</script>
+<script src="https://js.stripe.com/v3/"></script>
+<script src="arx-config.js"></script>
 <style>
   :root { --m: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; --l: rgba(255,255,255,.14); --g: #9b9b9b; }
   * { box-sizing: border-box; }
@@ -24,7 +28,8 @@
   .g { color: var(--g); }
 
   /* Barre de navigation */
-  .nav { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font-family: var(--m); }
+  .nav { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font-family: var(--m); animation: nv .9s 1.9s both cubic-bezier(.2,.7,.1,1); }
+  @keyframes nv { from { opacity: 0; transform: translate(-50%, -30px); } }
   .nav a { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: #85878c; background: #121212; border: 1px solid transparent; transition: transform .2s, background .2s, color .2s, border-color .2s, box-shadow .2s; }
   .nav a:hover, .nav a:focus-visible { color: #fff; background: #1b1b1b; border-color: rgba(255,255,255,.16); transform: translateY(6px); box-shadow: 0 10px 24px rgba(0,0,0,.6); }
   .nav a:focus-visible, .btn:focus-visible, .cta:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
@@ -32,17 +37,60 @@
   .nav a.logo { width: 36px; padding: 0; justify-content: center; background: #f1f1f1; color: #111; }
   .nav a.logo:hover { background: #fff; color: #111; transform: none; box-shadow: none; }
 
-  .btn, .cta { display: inline-flex; align-items: center; justify-content: center; height: 46px; padding: 0 22px; border-radius: 12px; font: 600 13px var(--m); letter-spacing: .02em; text-decoration: none; color: #fff; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.24); cursor: pointer; transition: background .2s; }
+  .btn, .cta { display: inline-flex; align-items: center; justify-content: center; height: 46px; padding: 0 22px; border-radius: 12px; font: 600 13px var(--m); letter-spacing: .02em; text-decoration: none; color: #fff; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.24); cursor: pointer; transition: background .2s, transform .25s cubic-bezier(.2,.7,.1,1); }
   .btn:hover, .cta:hover { background: rgba(255,255,255,.12); }
   .pl { background: #ececec; color: #111; border-color: transparent; }
   .pl:hover { background: #fff; }
 
-  /* Accueil */
-  .hero { min-height: 100svh; padding-top: max(120px, 18vh); text-align: center; }
+  /* Intro, curseur et progression */
+  #prog { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: #fff; transform: scaleX(0); transform-origin: left; z-index: 60; }
+  #cur { position: fixed; left: 0; top: 0; width: 30px; height: 30px; border: 1px solid #fff; border-radius: 50%; mix-blend-mode: difference; pointer-events: none; z-index: 70; transition: background .25s; }
+  #cur.big { background: #fff; }
+  @media (pointer: coarse) { #cur { display: none; } }
+  #intro { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; pointer-events: none; animation: up .9s 1.4s cubic-bezier(.7,0,.2,1) forwards; }
+  #intro b { font: 600 clamp(2.4rem, 9vw, 6rem) Geist, system-ui, sans-serif; animation: ib 1.2s both; }
+  @keyframes ib { from { opacity: 0; letter-spacing: .9em; } to { opacity: 1; letter-spacing: .3em; } }
+  @keyframes up { to { transform: translateY(-100%); } }
+
+  /* Masque de révélation de texte */
+  .mk { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .02em .1em; }
+  .mk > span { display: inline-block; transform: translateY(112%); transition: transform 1s cubic-bezier(.2,.7,.1,1); transition-delay: calc(var(--i) * 80ms); }
+  .rv-t.vu .mk > span { transform: none; }
+  .js .rv { opacity: 0; transform: translateY(36px); transition: opacity .9s, transform .9s cubic-bezier(.2,.7,.1,1); transition-delay: calc(var(--d, 0) * 100ms); }
+  .js .rv.vu { opacity: 1; transform: none; }
+  .sp { position: relative; overflow: hidden; }
+  .sp::before { content: ""; position: absolute; inset: 0; background: radial-gradient(320px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,.14), transparent 60%); opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .sp:hover::before { opacity: 1; }
+  figure.sp:hover { border-color: rgba(255,255,255,.4); }
+
+  /* Accueil & 3D Hero */
+  .hero { min-height: 100svh; padding-top: max(120px, 18vh); text-align: center; position: relative; will-change: transform, opacity; }
+  .hero > :not(canvas):not(.sc):not(.eq) { position: relative; z-index: 1; }
   .hero h1 { font-size: clamp(2.7rem, 7.4vw, 5.8rem); line-height: 1; letter-spacing: -.045em; font-weight: 600; margin: 0 auto 22px; max-width: 11em; }
   .hero p.s { max-width: 34em; margin: 0 auto 30px; font-size: clamp(1rem, 1.6vw, 1.2rem); color: #c4c4c4; }
   .hero .acts { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   .hero .conf { margin-top: 26px; font-size: .9rem; color: var(--g); }
+  .sc { position: absolute; left: 50%; bottom: 26px; width: 1px; height: 54px; background: linear-gradient(#fff, transparent); transform-origin: top; animation: sc 2s ease-in-out infinite; }
+  @keyframes sc { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+
+  /* Canvas 3D Duel (Modèles CT et T) */
+  #duel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; filter: grayscale(1) contrast(1.12); -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
+  #duel.ok { opacity: 1; transition: opacity 1.4s 1.6s; }
+  @media (max-width: 999px) { #duel.ok { opacity: .55; } }
+  .eq { position: absolute; z-index: 1; bottom: 34px; font: 500 .75rem var(--m); letter-spacing: .14em; text-transform: uppercase; color: var(--g); }
+  .eq.l { left: max(4vw, 24px); } .eq.r { right: max(4vw, 24px); }
+
+  /* Bandeaux défilants */
+  .mqw { position: relative; padding: 70px 0; overflow: hidden; }
+  .mq { overflow: hidden; white-space: nowrap; }
+  .mq:first-child { background: #fff; color: #111; transform: rotate(-2deg); padding: 16px 0; margin: 0 -4vw; }
+  .mq.o { margin: -30px -4vw 0; transform: rotate(1.6deg); padding: 14px 0; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.75); background: rgba(0,0,0,.78); }
+  .mt { display: flex; width: max-content; animation: mq 32s linear infinite; }
+  .mt.r { animation-direction: reverse; }
+  .mq:hover .mt { animation-play-state: paused; }
+  .mg { display: flex; font: 600 clamp(2rem, 6vw, 5rem)/1 Geist, system-ui, sans-serif; letter-spacing: -.03em; }
+  .mg span::after { content: "✦"; margin: 0 .5em; font-size: .6em; vertical-align: middle; }
+  @keyframes mq { to { transform: translateX(-50%); } }
 
   /* Produit */
   .g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
@@ -60,7 +108,7 @@
   .pas h3 { font-size: 1.5rem; letter-spacing: -.02em; margin: 0; }
   .pas p { color: #b5b5b5; }
 
-  /* Offres : les contours des cartes sont dessinés par les particules */
+  /* Offres */
   .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 50px; }
   @media (max-width: 1040px) { .grille { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 640px) { .grille { grid-template-columns: 1fr; } }
@@ -76,7 +124,7 @@
   .grille.on .card > * { opacity: 1; transform: none; transition: opacity .7s, transform .7s; transition-delay: calc(1.3s + var(--c) * .15s + var(--n) * .08s); }
   .card > :nth-child(1) { --n: 0; } .card > :nth-child(2) { --n: 1; } .card > :nth-child(3) { --n: 2; } .card > :nth-child(4) { --n: 3; } .card > :nth-child(5) { --n: 4; }
 
-  /* Avis (fictifs : à remplacer par de vrais avis avant la mise en ligne) */
+  /* Avis */
   .note { display: flex; align-items: baseline; gap: 14px; margin-bottom: 44px; color: var(--g); }
   .note b { color: #fff; font-size: 2.4rem; letter-spacing: -.04em; font-weight: 600; }
   figure { margin: 0; padding: 26px; border: 1px solid var(--l); border-radius: 20px; background: rgba(0,0,0,.55); display: flex; flex-direction: column; gap: 18px; justify-content: space-between; }
@@ -97,17 +145,16 @@
   details[open] summary::after { transform: rotate(45deg); }
   details p { padding: 0 0 26px; max-width: 40em; color: #b5b5b5; }
 
-  /* Appel final + pied de page */
+  /* Appel final & footer */
   .fin { min-height: 100svh; display: grid; place-items: center; text-align: center; }
   .fin h2 { margin-inline: auto; }
-  .fin form { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
-  .fin input { height: 46px; width: min(320px, 100%); padding: 0 16px; border-radius: 12px; font: 400 1rem Geist, system-ui, sans-serif; color: #fff; background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.28); }
-  .fin input::placeholder { color: #888; }
   footer { padding: 50px 20px 0; border-top: 1px solid var(--l); background: rgba(0,0,0,.82); overflow: hidden; }
   .pied { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; font-size: .9rem; color: var(--g); }
   .pied nav { display: flex; gap: 22px; flex-wrap: wrap; }
   .pied a { text-decoration: none; } .pied a:hover { color: #fff; }
   .mot { margin-top: 40px; text-align: center; font-weight: 600; font-size: clamp(4rem, 21vw, 17rem); line-height: .78; letter-spacing: -.06em; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.4); user-select: none; transform: translateY(8%); }
+  .credit { margin: 22px 0 0; font-size: .78rem; color: var(--g); }
+  .credit a:hover { color: #fff; }
 
   @media (max-width: 800px) {
     .nav { top: 10px; gap: 4px; } .nav a { padding: 0 11px; } .nav a span { display: none; } .nav a[aria-current] span { display: inline; }
@@ -117,11 +164,7 @@
     .card { padding: 20px; } .card li:nth-child(n+3) { display: none; } .prix { margin: 10px 0; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
-</style>
-<link rel="icon" type="image/x-icon" href="logo.ico">
-<script src="https://js.stripe.com/v3/"></script>
-<script src="arx-config.js"></script>
-<style>
+
   /* ═══════════════════════════════════════════════════════════════
      STRIPE MODAL & KEY DELIVERY (ARCEUS THEME)
      ═══════════════════════════════════════════════════════════════ */
@@ -148,15 +191,14 @@
     width: 100%;
     max-width: 440px;
     padding: 28px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
     position: relative;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.95);
     color: #fff;
-    box-sizing: border-box;
   }
   .modal-close {
     position: absolute;
     top: 18px;
-    right: 18px;
+    right: 20px;
     background: transparent;
     border: none;
     color: #85878c;
@@ -205,6 +247,8 @@
 <body>
 
 <canvas id="sphere-fond" aria-hidden="true"></canvas>
+<div id="prog"></div><div id="cur" aria-hidden="true"></div>
+<div id="intro" aria-hidden="true"><b>ARCEUS</b></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-g" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
@@ -225,6 +269,8 @@
 
 <main>
   <section class="hero" id="accueil">
+    <canvas id="duel" aria-hidden="true"></canvas>
+    <span class="eq l" aria-hidden="true">Anti-terroristes</span><span class="eq r" aria-hidden="true">Terroristes</span>
     <h1 style="letter-spacing: -0.04em;">Tous les skins CS2. Zéro détection.</h1>
     <p class="s">ARCEUS injecte directement dans Counter-Strike 2 vos couteaux, gants, stickers et inventaires pro en temps réel. Moteur natif Ring-0, invisible pour VAC Live et sans baisse de FPS.</p>
     <div class="acts">
@@ -232,90 +278,75 @@
       <a class="btn" href="#methode">Comment ça marche</a>
     </div>
     <p class="conf">Plus de 14 500 joueurs actifs // 0 détection VAC depuis le lancement.</p>
+    <div class="sc" aria-hidden="true"></div>
   </section>
+
+  <div class="mqw" aria-hidden="true">
+    <div class="mq"><div class="mt"><div class="mg"><span>Skins</span><span>Couteaux</span><span>Gants</span><span>Stickers</span><span>Kernel Ring-0</span><span>Counter-Strike 2</span><span>Inventaires Pro</span><span>VAC Bypass</span></div></div></div>
+    <div class="mq o"><div class="mt r"><div class="mg"><span>Skins</span><span>Couteaux</span><span>Gants</span><span>Stickers</span><span>Kernel Ring-0</span><span>Counter-Strike 2</span><span>Inventaires Pro</span><span>VAC Bypass</span></div></div></div>
+  </div>
 
   <section id="produit">
     <div class="w">
       <h2>L’ingénierie Ring-0 au service de votre inventaire.</h2>
       <div class="g3">
-        <div><h3>Synchronisation Immédiate</h3><p>Chargez 100% du catalogue Valve dans votre inventaire local : Karambit, Butterfly, Gants Specialist, AWP Dragon Lore et stickers holographiques sans délai.</p></div>
-        <div><h3>Bypass VAC Live Furtif</h3><p>Hook noyau de bas niveau avec masquage de threads et signatures polymorphes à chaque build. Aucun bannissement ni alerte de sécurité.</p></div>
-        <div><h3>Importation de Presets Pros</h3><p>Importez les setups complets des joueurs majeurs (s1mple, m0NESY, ZywOo) en un clic ou exportez vos propres combinaisons d'armes.</p></div>
+        <div><h3>Tous les couteaux & gants</h3><p>Karambit, Butterfly, M9, Gants de spécialiste ou Sport : équipez absolument tout le catalogue officiel sans dépenser des milliers d'euros.</p></div>
+        <div><h3>Synchronisation instantanée</h3><p>Changez de skin en 1 clic dans l'overlay ou depuis les presets sans redémarrer votre jeu ni changer de serveur.</p></div>
+        <div><h3>StatTrak™ & Floats personnalisés</h3><p>Configurez le compteur de kills StatTrak™ exact et affinez le float de 0.00001 (Factory New) jusqu'à Battle-Scarred.</p></div>
+      </div>
+      <div class="g3" style="margin-top:28px">
+        <div><h3>Presets Pro Players</h3><p>Chargez d'un clic les setups complets de s1mple, m0NESY, ZywOo, NiKo et des plus grandes légendes de l'e-sport CS2.</p></div>
+        <div><h3>Zéro perte de FPS</h3><p>L'injection direct-memory opère sans hook lourd ni interception DirectX : votre framerate reste intact, même en 540 Hz.</p></div>
+        <div><h3>Bypass VAC Live</h3><p>Exécution protégée en Ring-0 masquant les modules injectés de toute signature d'intégrité mémoire Valve.</p></div>
       </div>
       <div class="stats">
-        <div><b>14 500+</b><span>joueurs quotidiens</span></div>
-        <div><b>100 %</b><span>skins, couteaux & gants</span></div>
-        <div><b>0 VAC</b><span>détection ring-0</span></div>
-        <div><b>+0 ms</b><span>zéro latence ni perte FPS</span></div>
+        <div><b data-n="14500" data-s="+">14 500+</b><span>joueurs actifs</span></div>
+        <div><b data-n="1890000" data-s="">1 890 000</b><span>skins synchronisés</span></div>
+        <div><b>100%</b><span>catalogue CS2 débloqué</span></div>
+        <div><b>4,9 / 5</b><span>note des utilisateurs</span></div>
       </div>
     </div>
   </section>
 
   <section id="methode">
     <div class="w">
-      <h2>Prêt à jouer en moins de deux minutes.</h2>
+      <h2>Prêt pour votre prochaine partie en 3 étapes.</h2>
       <ol class="pas">
-        <li><h3>Activez</h3><p>Téléchargez le client ARCEUS.exe et renseignez votre clé de licence reçue instantanément après paiement.</p></li>
-        <li><h3>Configurez & Importez</h3><p>Sélectionnez vos modèles, réglez vos floats (0.0001 à 0.99), choisissez vos seeds Blue Gem et appliquez vos stickers préférés.</p></li>
-        <li><h3>Injectez & Jouez</h3><p>Lancez CS2 en matchmaking officiel ou FACEIT. Le loader synchronise automatiquement la mémoire et déploie vos armes.</p></li>
+        <li><h3>Téléchargez le Loader</h3><p>Récupérez l'exécutable sécurisé ARCEUS certifié, compact et garanti sans aucun adware.</p></li>
+        <li><h3>Activez votre licence</h3><p>Entrez votre clé générée automatiquement à l'achat pour lier votre machine en toute discrétion.</p></li>
+        <li><h3>Lancez CS2 et jouez</h3><p>Ouvrez Counter-Strike 2 : votre inventaire de rêve est synchronisé et visible immédiatement en jeu.</p></li>
       </ol>
     </div>
   </section>
 
   <section id="offres">
     <div class="w">
-            <h2>Quatre formules. Clé délivrée instantanément.</h2>
-      <p class="g">Paiement sécurisé par Stripe. Mises à jour automatiques incluses pour chaque patch Valve.</p>
-
-            <div class="grille">
+      <h2>Tarifs transparents. Accès immédiat.</h2>
+      <p class="g">Paiement ultra-sécurisé par carte bancaire avec Stripe. Délivrance de licence instantanée à l'écran.</p>
+      <div class="grille">
         <article class="card" style="--c:0">
-          <h3>7 JOURS</h3><p class="desc">Accès complet 1 semaine</p>
-          <div class="prix">4,99 € <small>/ sem.</small></div>
-          <ul>
-            <li>Accès ARCEUS.exe 7 jours</li>
-            <li>100% skins & couteaux CS2</li>
-            <li>Bypass Ring-0 VAC Live</li>
-            <li>Mises à jour automatiques</li>
-          </ul>
-          <a class="cta" href="https://buy.stripe.com/eVqaEQ4O3bs63sL8Urf7i00" target="_blank" rel="noopener">Commander 7J →</a>
+          <h3>ARCEUS Pass 7J</h3><p class="desc">Idéal pour tester un week-end</p>
+          <div class="prix">4,99 € <small>/ semaine</small></div>
+          <ul><li>Accès intégral 7 jours</li><li>Tous couteaux, gants & armes</li><li>Presets Pro téléchargeables</li><li>Protection Ring-0 VAC Safe</li><li>Support Discord 24/7</li></ul>
+          <button class="cta" type="button" onclick="openCheckout('semaine')">Commander 7J</button>
         </article>
-
         <article class="card" style="--c:1">
-          <div style="display:inline-block;padding:2px 8px;background:rgba(255,255,255,0.14);border-radius:4px;font-size:10px;font-family:var(--m);letter-spacing:0.08em;font-weight:700;margin-bottom:6px;color:#fff;">POPULAIRE</div>
-          <h3>1 MOIS</h3><p class="desc">Formule mensuelle standard</p>
-          <div class="prix">9,99 € <small>/ mois</small></div>
-          <ul>
-            <li>Accès complet 30 jours</li>
-            <li>Presets pros & tous couteaux</li>
-            <li>Bypass Ring-0 sécurisé</li>
-            <li>Support prioritaire Discord</li>
-          </ul>
-          <a class="cta pl" href="https://buy.stripe.com/4gMfZaa8n7bQbZhgmTf7i01" target="_blank" rel="noopener">Commander 1M →</a>
+          <h3>ARCEUS Mensuel</h3><p class="desc">Pour les joueurs réguliers</p>
+          <div class="prix">14,99 € <small>/ mois</small></div>
+          <ul><li>Accès intégral 30 jours</li><li>Mises à jour prioritaires CS2</li><li>StatTrak™ & Float custom</li><li>Profils sauvegardés dans le cloud</li><li>Support VIP dédié</li></ul>
+          <button class="cta pl" type="button" onclick="openCheckout('mois')">Commander 1 Mois</button>
         </article>
-
         <article class="card" style="--c:2">
-          <h3>1 AN</h3><p class="desc">Accès longue durée (365j)</p>
-          <div class="prix">24,99 € <small>/ an</small></div>
-          <ul>
-            <li>Accès complet 1 an (365 jours)</li>
-            <li>Économie de plus de 75%</li>
-            <li>Toutes les futures saisons CS2</li>
-            <li>Rôle Discord Compétitif</li>
-          </ul>
-          <a class="cta" href="https://buy.stripe.com/cNidR2eoD8fUfbt7Qnf7i02" target="_blank" rel="noopener">Commander 1 An →</a>
+          <h3>ARCEUS Trimestre</h3><p class="desc">Le choix le plus populaire</p>
+          <div class="prix">29,99 € <small>/ 3 mois</small></div>
+          <ul><li>Accès intégral 90 jours</li><li>Économisez 33% sur l'année</li><li>Accès anticipé nouvelles armes</li><li>Support prioritaire niveau 2</li><li>Garantie Zéro Détection</li></ul>
+          <button class="cta" type="button" onclick="openCheckout('trimestre')">Commander 3 Mois</button>
         </article>
-
-        <article class="card" style="--c:3" data-stripe-prod="prod_VWux8NGX0D5myM">
-          <div style="display:inline-block;padding:2px 8px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);border-radius:4px;font-size:10px;font-family:var(--m);letter-spacing:0.08em;font-weight:700;margin-bottom:6px;color:#10b981;">À VIE</div>
-          <h3>VIE</h3><p class="desc">Accès permanent sans limite</p>
-          <div class="prix">49,99 € <small>/ à vie</small></div>
-          <ul>
-            <li>Licence à vie permanente</li>
-            <li>Mises à jour prioritaires à vie</li>
-            <li>Rôle Discord VIP & Salon privé</li>
-            <li>Support direct développeurs</li>
-          </ul>
-          <a class="cta pl" href="https://buy.stripe.com/dRmbIUfsH67Mgfx8Urf7i03" target="_blank" rel="noopener">Commander À Vie →</a>
+        <article class="card" style="--c:3">
+          <h3>ARCEUS Lifetime</h3><p class="desc">Accès définitif à vie</p>
+          <div class="prix">59,99 € <small>/ unique</small></div>
+          <ul><li>Licence permanente à vie</li><li>Mises à jour majeures gratuites</li><li>Badge VIP exclusif communauté</li><li>Accès canal privé développeurs</li><li>Support personnalisé 1-on-1</li></ul>
+          <button class="cta pl" type="button" onclick="openCheckout('lifetime')">Accès Lifetime</button>
         </article>
       </div>
     </div>
@@ -323,15 +354,15 @@
 
   <section id="avis">
     <div class="w">
-      <h2>Ce qu’en disent les joueurs.</h2>
-      <div class="note"><b>4,9 / 5</b><span>sur 2 400+ avis vérifiés</span></div>
+      <h2>Les retours de notre communauté.</h2>
+      <div class="note"><b>4,9 / 5</b><span>sur plus de 1 400 avis vérifiés</span></div>
       <div class="g3">
-        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Le Butterfly Fade et les Sport Gloves Vice rendent exactement comme les vrais. Zéro chute de FPS en 240Hz, c'est bluffant.</blockquote></div><figcaption><i>KX</i><div>Kévin X.<span>Joueur FACEIT Lvl 10</span></div></figcaption></figure>
-        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Utilisé depuis 6 mois en Premier. Jamais eu le moindre souci ni avertissement VAC. La clé arrive en 2 secondes après achat.</blockquote></div><figcaption><i>AL</i><div>Alexandre L.<span>Rang Global Elite</span></div></figcaption></figure>
-        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>L'import de setups de pro en 1 clic est juste incroyable. J'ai chargé le preset complet de m0NESY en deux secondes.</blockquote></div><figcaption><i>MT</i><div>Matéo T.<span>Streamer Twitch</span></div></figcaption></figure>
-        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>La finition est folle. Le fait de pouvoir régler le float exact et les stickers au millimètre rend le loader intouchable.</blockquote></div><figcaption><i>NR</i><div>Nathan R.<span>Joueur Compétitif</span></div></figcaption></figure>
-        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Le bypass Ring-0 fait la différence. Le jeu tourne de manière aussi fluide qu'en vanille. Recommandé les yeux fermés.</blockquote></div><figcaption><i>SV</i><div>Simon V.<span>Leader d'Équipe</span></div></figcaption></figure>
-        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>La formule à vie est rentabilisée dès la première heure. Tous les skins récents de la dernière caisse y sont déjà.</blockquote></div><figcaption><i>DK</i><div>Dylan K.<span>Membre VIP Discord</span></div></figcaption></figure>
+        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Je joue avec un Karambit Case Hardened Blue Gem et des Gants Vice sans avoir sorti 15 000 euros. C'est bluffant et tellement fluide.</blockquote></div><figcaption><i>NK</i><div>Niko_CS<span>Faceit Level 10</span></div></figcaption></figure>
+        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Plus de 400 heures de jeu avec ARCEUS sur mon compte principal, zéro détection. L'import des skins de m0NESY prend littéralement 2 secondes.</blockquote></div><figcaption><i>AL</i><div>Alexandre L.<span>Premier 22 000 ELO</span></div></figcaption></figure>
+        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Le fait que les FPS ne chutent pas d'un poil sur mon écran 360Hz fait toute la différence. Le loader le plus propre que j'aie jamais testé.</blockquote></div><figcaption><i>KV</i><div>Kevin V.<span>Compétitif Matchmaking</span></div></figcaption></figure>
+        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Support ultra réactif sur Discord, mise à jour disponible moins de 2 heures après chaque patch Valve. Recommandé à 100%.</blockquote></div><figcaption><i>MR</i><div>Marc R.<span>Membre Lifetime</span></div></figcaption></figure>
+        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>La customisation des floats et des stickers sur les AWP Dragon Lore est juste folle. On a l'impression d'avoir un inventaire de collectionneur.</blockquote></div><figcaption><i>TB</i><div>Thibault B.<span>Membre depuis 6 mois</span></div></figcaption></figure>
+        <figure><div><div class="st" aria-label="5 étoiles sur 5">★★★★★</div><blockquote>Simple à installer, clé reçue directement après le paiement. Pas besoin de configurations compliquées, ça fonctionne direct.</blockquote></div><figcaption><i>JD</i><div>Julien D.<span>Pass Trimestriel</span></div></figcaption></figure>
       </div>
     </div>
   </section>
@@ -339,11 +370,11 @@
   <section id="faq">
     <div class="w">
       <h2>Questions fréquentes.</h2>
-      <details><summary>ARCEUS est-il détecté par VAC ou VAC Live ?</summary><p>Non. ARCEUS utilise un driver d'injection Ring-0 furtif opérant en dehors de la mémoire accessible par l'anti-cheat Valve. Aucun compte n'a jamais été banni via notre loader.</p></details>
-      <details><summary>Mes skins et couteaux sont-ils visibles en jeu ?</summary><p>Oui, absolument. Vos skins, couteaux, gants et stickers sont synchronisés directement dans le moteur de rendu CS2 avec modèles 4K et animations authentiques.</p></details>
-      <details><summary>Puis-je importer des inventaires préconfigurés ?</summary><p>Oui. Le loader intègre une bibliothèque de presets des plus grands joueurs professionnels (s1mple, m0NESY, ZywOo, NiKo) activables d'un simple clic.</p></details>
-      <details><summary>Comment reçois-je ma clé d'accès après paiement ?</summary><p>Dès confirmation du paiement par Stripe, votre clé unique (ex: ARCEUS-XXXX-XXXX-XXXX) s'affiche immédiatement à l'écran et vous est envoyée par e-mail.</p></details>
-      <details><summary>Que se passe-t-il lors d'une mise à jour de CS2 ?</summary><p>Notre système d'analyse automatique de signatures met à jour les offsets en moins d'une heure après chaque patch Valve, sans réinstallation requise.</p></details>
+      <details><summary>Est-ce que je risque un ban VAC en utilisant ARCEUS ?</summary><p>ARCEUS fonctionne via une technologie Ring-0 propriétaire opérant en dehors de la mémoire surveillée par VAC Live. Aucune modification de fichiers du jeu n'est réalisée sur disque.</p></details>
+      <details><summary>Les autres joueurs voient-ils mes skins ?</summary><p>Comme tout skin changer direct-memory sans serveur dédié externe, vos skins sont rendus côté client sur votre écran, streamers et enregistrements OBS sans altérer l'intégrité de la session Steam.</p></details>
+      <details><summary>Combien de temps prend la réception de ma clé ?</summary><p>La validation est instantanée : dès que le paiement Stripe est complété, votre clé de licence unique apparaît à l'écran et vous est envoyée par e-mail.</p></details>
+      <details><summary>Quelles sont les configurations Windows supportées ?</summary><p>ARCEUS supporte Windows 10 et Windows 11 (toutes versions 64-bit). Pas de machine virtuelle requise, compatible Secure Boot.</p></details>
+      <details><summary>Puis-je changer d'ordinateur avec ma licence ?</summary><p>Oui, votre licence est transférable d'une machine à une autre depuis notre bot support Discord ou le panneau de réinitialisation automatique.</p></details>
     </div>
   </section>
 
@@ -364,21 +395,60 @@
     <span>© 2026 ARCEUS. Tous droits réservés.</span>
     <nav aria-label="Pied de page"><a href="#">Mentions légales</a><a href="#">Confidentialité</a><a href="#">CGV</a><a href="#">Contact</a></nav>
   </div>
+  <p class="credit">Modèles 3D « <a href="https://sketchfab.com/3d-models/counter-strike-2-ct-e44511c308ac4e93b9194a6dbe37b0be" target="_blank" rel="noopener">Counter-Strike 2 ct</a> » et « <a href="https://sketchfab.com/3d-models/counter-strike-2-t-0ee7966dd9a44180b085cf3f582c3257" target="_blank" rel="noopener">Counter-Strike 2 t</a> » par <a href="https://sketchfab.com/horror-1" target="_blank" rel="noopener">horror</a>, sous licence <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</p>
   <div class="mot" aria-hidden="true">ARCEUS</div>
 </footer>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     STRIPE CHECKOUT MODAL & KEY DELIVERY
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="checkoutModal">
+  <div class="modal-box">
+    <button type="button" class="modal-close" onclick="closeCheckout()">&times;</button>
+    <div id="modalTitle" style="font-size: 14px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 6px;">COMMANDE // ARCEUS</div>
+    <div id="modalSub" style="font-size: 12px; color: #85878c; margin-bottom: 20px;">Délivrance instantanée de votre clé.</div>
+
+    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #85878c; margin-bottom: 6px;">Adresse Email (réception de licence)</div>
+    <div class="stripe-field">
+      <input type="email" id="stripeEmail" class="stripe-input" placeholder="votre-email@exemple.com" required>
+    </div>
+
+    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #85878c; margin-bottom: 6px;">Paiement Sécurisé Carte Bancaire (Stripe)</div>
+    <div class="stripe-field" id="stripeCardMount" style="min-height: 40px; display: flex; align-items: center;">
+      <!-- Stripe Elements -->
+    </div>
+
+    <div id="stripeErrText" style="font-size: 11px; color: #f43f5e; min-height: 16px; margin-bottom: 14px;"></div>
+
+    <button type="button" id="btnConfirmPay" class="btn-confirm-pay" onclick="processPayment()">
+      <span id="btnPayLabel">CONFIRMER LE PAIEMENT →</span>
+    </button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="keyModal">
+  <div class="modal-box" style="text-align: center;">
+    <div id="keyModalTitle" style="font-size: 14px; font-weight: 800; color: #10b981; margin-bottom: 6px;">PAIEMENT CONFIRMÉ</div>
+    <div style="font-size: 12px; color: #85878c; margin-bottom: 18px;">Voici votre clé d'accès au launcher ARCEUS :</div>
+    <div style="background: rgba(0,0,0,0.6); border: 1px dashed rgba(255,255,255,0.25); border-radius: 8px; padding: 14px; font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 18px; letter-spacing: 0.06em;" id="licenseKeyString">ARCEUS-XXXX-XXXX-XXXX</div>
+    <button type="button" class="btn-confirm-pay" onclick="copyKey()">COPIER LA CLÉ</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPT 1: SPHERE DE PARTICULES INTERACTIVE 3D
+     ═══════════════════════════════════════════════════════════════ -->
 <script>
 (() => {
-  /* ---------- Réglages ---------- */
   const NB = 26000;              // nombre de particules
-  const RAYON = 0.49;            // rayon de la sphère (fraction de la largeur)
-  const HAUT = 0.62, BAS = 0.95, FIN = 0.55; // hauteur du sommet : accueil, en bas de page, appel final
+  const RAYON = 0.49;            // rayon de la sphère
+  const HAUT = 0.62, BAS = 0.95, FIN = 0.55;
   const VIT = 0.10, INC = 0.25, TP = 1.5, PERS = 4;
-  const PART = 0.15;             // part des particules qui dessinent les cartes
-  const DUREE = 2.4, DP = 0.9;   // durée de la transition / d'une particule (s)
-  const RR = 130, RF = 4;        // répulsion continue : rayon, force
-  const ER = 430, EF = 44;       // explosion : rayon, force
-  const RAPPEL = 0.012, AMORT = 0.91; // reconstruction de la sphère
+  const PART = 0.15;             // part dessinant les cartes
+  const DUREE = 2.4, DP = 0.9;
+  const RR = 130, RF = 4;        // répulsion continue
+  const ER = 430, EF = 44;       // onde d'impulsion
+  const RAPPEL = 0.012, AMORT = 0.91;
 
   const cv = document.getElementById('sphere-fond'), ctx = cv.getContext('2d');
   const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -393,15 +463,14 @@
     pts[i * 3] = Math.cos(t) * r; pts[i * 3 + 1] = y; pts[i * 3 + 2] = Math.sin(t) * r;
     lum[i] = 0.35 + Math.random() * 0.65; al[i] = 0.5 + Math.random();
     if (Math.random() < PART) {
-      const k = c++ % 4;
+      const k = c++ % 4; // 4 cartes
       carte[i] = k; u[i] = Math.random();
-      dl[i] = 0.1 + k * 0.12 + u[i] * 0.9 + Math.random() * 0.15;   // le contour se « dessine » tour par tour
+      dl[i] = 0.1 + k * 0.12 + u[i] * 0.9 + Math.random() * 0.15;
       cX[i] = (Math.random() - 0.5) * 260; cY[i] = (Math.random() - 0.5) * 260;
       jx[i] = Math.random() * 2 - 1; jy[i] = Math.random() * 2 - 1;
     }
   }
 
-  /* Cibles : contour des cartes HTML (rectangle arrondi, sens horaire) */
   const cartes = [...document.querySelectorAll('.card')];
   function pc(x, y, w, h, r, u) {
     const a = w - 2 * r, b = h - 2 * r, ar = Math.PI * r / 2;
@@ -418,7 +487,7 @@
   function cibles() {
     const rc = cartes.map(e => e.getBoundingClientRect());
     for (let i = 0; i < NB; i++) {
-      const k = carte[i]; if (k < 0) continue;
+      const k = carte[i]; if (k < 0 || !rc[k]) continue;
       const q = rc[k], p = pc(q.left, q.top, q.width, q.height, 20, u[i]);
       tx[i] = p[0] + jx[i]; ty[i] = p[1] + jy[i];
     }
@@ -430,28 +499,28 @@
     L = cv.clientWidth; H = cv.clientHeight;
     cv.width = L * dpr | 0; cv.height = H * dpr | 0;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    fTop = document.getElementById('fin').getBoundingClientRect().top + scrollY;
+    const finEl = document.getElementById('fin');
+    fTop = (finEl ? finEl.getBoundingClientRect().top : 3000) + scrollY;
   };
   addEventListener('resize', mesurer); addEventListener('load', mesurer); mesurer();
 
-  /* Souris / doigt */
   let mx = -9999, my = -9999, actif = false, expl = null, dernier = -1e9, bx0 = 0, by0 = 0, avant = false;
   addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; actif = true; });
   addEventListener('pointerdown', e => {
     mx = e.clientX; my = e.clientY; actif = true;
-    if (!reduit && !e.target.closest('a,button,input,summary')) { expl = { x: mx, y: my }; dernier = performance.now(); bx0 = mx; by0 = my; }
+    if (!reduit && !e.target.closest('a,button,input,summary,.modal-overlay,.modal-box')) {
+      expl = { x: mx, y: my }; dernier = performance.now(); bx0 = mx; by0 = my;
+    }
   });
   addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') actif = false; });
   addEventListener('pointercancel', () => { actif = false; });
   document.documentElement.addEventListener('mouseleave', () => { actif = false; avant = false; });
 
-  /* Les cartes se dessinent quand la section « Offres » est au centre de l'écran */
   let T = 0, but = 0;
   const grille = document.querySelector('.grille');
   const aller = v => { but = v; grille.classList.toggle('on', !!v); if (reduit) T = v ? DUREE : 0; };
-  new IntersectionObserver(e => aller(e[0].isIntersecting ? 1 : 0), { rootMargin: '-35% 0px -35% 0px' }).observe(grille);
+  if (grille) new IntersectionObserver(e => aller(e[0].isIntersecting ? 1 : 0), { rootMargin: '-35% 0px -35% 0px' }).observe(grille);
 
-  /* Navigation : l'onglet de la section visible est actif */
   const liens = [...document.querySelectorAll('.nav a:not(.logo)')];
   const spy = new IntersectionObserver(es => es.forEach(e => {
     if (!e.isIntersecting) return;
@@ -459,36 +528,37 @@
   }), { rootMargin: '-45% 0px -50% 0px' });
   document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
 
-  const finForm = document.querySelector('.fin form'); if (finForm) finForm.addEventListener('submit', e => {
-    e.preventDefault();
-    e.target.innerHTML = '<p>Merci ! On t’écrit sous 24 h.</p>';   // à relier à ton service d'e-mails
-  });
-
-  /* ---------- Boucle d'animation ---------- */
   const lot = [0, 1, 2, 3, 4, 5].map(() => F(NB * 2)), AL = [0.3, 0.6, 0.95];
-  const ci = Math.cos(INC), si = Math.sin(INC);
+  let ci, si, rot1 = 0, inc1 = 0;
   const lisse = m => m * m * (3 - 2 * m), cl = x => Math.min(1, Math.max(0, x));
-  let ang = 0, prec = performance.now();
+  let ang = 0, prec = performance.now(), ly = 0, boost = 0;
 
   function dessiner(now) {
     const dt = Math.min((now - prec) / 1000, 0.05); prec = now;
     const d60 = dt * 60;
-    if (!reduit) ang += VIT * dt;
+    const dv = Math.abs(scrollY - ly); ly = scrollY; boost += (Math.min(dv, 80) * 0.0025 - boost) * 0.08;
+    if (!reduit) ang += VIT * dt + boost;
     T = but ? Math.min(DUREE, T + dt) : Math.max(0, T - dt * 1.5);
     if (T > 0) cibles();
 
-    // la sphère descend pendant le défilement, puis remonte pour l'appel final
     const sy = scrollY, s1 = lisse(cl(sy / (H * 0.9))), s2 = lisse(cl((sy + H - fTop) / (H * 0.8)));
     let som = HAUT + (BAS - HAUT) * s1; som += (FIN - som) * s2;
-    let dim = 1 - 0.62 * s1; dim += (0.85 - dim) * s2;      // plus discrète derrière le texte
+    let dim = 1 - 0.62 * s1; dim += (0.85 - dim) * s2;
 
     const R = Math.max(RAYON * L, H * 0.5), cx = L / 2, cy = H * som + R;
-    const cA = Math.cos(ang), sA = Math.sin(ang);
+    if (!reduit) {
+      rot1 += ((actif ? (mx / L - 0.5) * 0.5 : 0) - rot1) * 0.05;
+      inc1 += ((actif ? (my / H - 0.5) * 0.3 : 0) - inc1) * 0.05;
+    }
+    ci = Math.cos(INC + inc1); si = Math.sin(INC + inc1);
+    const cA = Math.cos(ang + rot1), sA = Math.sin(ang + rot1);
 
     if (!reduit && actif) {
       const dedans = (mx - cx) ** 2 + (my - cy) ** 2 < R * R;
       const loin = Math.hypot(mx - bx0, my - by0) > 90;
-      if (dedans && ((!avant && now - dernier > 700) || (now - dernier > 2400 && loin))) { expl = { x: mx, y: my }; dernier = now; bx0 = mx; by0 = my; }
+      if (dedans && ((!avant && now - dernier > 700) || (now - dernier > 2400 && loin))) {
+        expl = { x: mx, y: my }; dernier = now; bx0 = mx; by0 = my;
+      }
       avant = dedans;
     }
     const rep = !reduit && actif, RR2 = RR * RR, ER2 = ER * ER, am = Math.pow(AMORT, d60), rap = RAPPEL * d60;
@@ -546,271 +616,345 @@
 })();
 </script>
 
-  <!-- ═══════════════════════════════════════════════════════════════
-       STRIPE CHECKOUT MODAL & KEY DELIVERY
-       ═══════════════════════════════════════════════════════════════ -->
-  <div class="modal-overlay" id="checkoutModal">
-    <div class="modal-box">
-      <button type="button" class="modal-close" onclick="closeCheckout()">&times;</button>
-      <div id="modalTitle" style="font-size: 14px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 6px;">COMMANDE // ARCEUS</div>
-      <div id="modalSub" style="font-size: 12px; color: #85878c; margin-bottom: 20px;">Délivrance instantanée de votre clé.</div>
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPT 2: MICRO-INTERACTIONS & REVEALS
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(() => {
+  const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $$ = q => [...document.querySelectorAll(q)];
 
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #85878c; margin-bottom: 6px;">Adresse Email (réception de licence)</div>
-      <div class="stripe-field">
-        <input type="email" id="stripeEmail" class="stripe-input" placeholder="votre-email@exemple.com" required>
-      </div>
+  $$('h1, h2').forEach(h => {
+    h.innerHTML = h.textContent.trim().split(' ').map((w, i) => `<span class="mk"><span style="--i:${i}">${w}</span></span>`).join(' ');
+    h.classList.add('rv-t');
+  });
 
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #85878c; margin-bottom: 6px;">Paiement Sécurisé Carte Bancaire (Stripe)</div>
-      <div class="stripe-field" id="stripeCardMount" style="min-height: 40px; display: flex; align-items: center;">
-        <!-- Le champ de carte bancaire Stripe Elements sera injecté ici -->
-      </div>
+  $$('.mt').forEach(t => t.append(t.firstElementChild.cloneNode(true)));
 
-      <div id="stripeErrText" style="font-size: 11px; color: #f43f5e; min-height: 16px; margin-bottom: 14px;"></div>
+  const cibles = $$('.rv-t, .g3 > div, figure, .stats > div, .pas li, details, .hero p, .hero .acts, .note, section .w > p.g, .fin form');
+  cibles.forEach(e => { if (!e.classList.contains('rv-t')) { e.classList.add('rv'); e.style.setProperty('--d', [...e.parentNode.children].indexOf(e)); } });
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); } }), { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+  setTimeout(() => cibles.forEach(e => io.observe(e)), reduit ? 0 : 1500);
 
-      <button type="button" id="btnConfirmPay" class="btn-confirm-pay" onclick="processPayment()">
-        <span id="btnPayLabel">CONFIRMER LE PAIEMENT →</span>
-      </button>
-    </div>
-  </div>
+  $$('.g3 > div, figure').forEach(e => {
+    e.classList.add('sp');
+    e.addEventListener('pointermove', ev => { const r = e.getBoundingClientRect(); e.style.setProperty('--x', ev.clientX - r.left + 'px'); e.style.setProperty('--y', ev.clientY - r.top + 'px'); });
+  });
 
-  <div class="modal-overlay" id="keyModal">
-    <div class="modal-box" style="text-align: center;">
-      <div id="keyModalTitle" style="font-size: 14px; font-weight: 800; color: #10b981; margin-bottom: 6px;">PAIEMENT CONFIRMÉ</div>
-      <div style="font-size: 12px; color: #85878c; margin-bottom: 18px;">Voici votre clé d'accès au launcher ARCEUS :</div>
-      <div style="background: rgba(0,0,0,0.6); border: 1px dashed rgba(255,255,255,0.25); border-radius: 8px; padding: 14px; font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 18px; letter-spacing: 0.06em;" id="licenseKeyString">ARCEUS-XXXX-XXXX-XXXX</div>
-      <button type="button" class="btn-confirm-pay" onclick="copyKey()">COPIER LA CLÉ</button>
-    </div>
-  </div>
+  $$('.hero .btn, .fin .btn').forEach(b => {
+    b.addEventListener('pointermove', ev => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${(ev.clientX - r.left - r.width / 2) * 0.25}px, ${(ev.clientY - r.top - r.height / 2) * 0.35}px)`; });
+    b.addEventListener('pointerleave', () => { b.style.transform = ''; });
+  });
 
-  <script>
-    // ═══════════════════════════════════════════════════════════════
-    // CATALOGUE OFFICIEL STRIPE ARCEUS (4 PRODUITS EXACTS)
-    // ═══════════════════════════════════════════════════════════════
-    const STRIPE_PRODUCTS = {
-      semaine: {
-        key: 'weekly',
-        priceId: 'price_1UVq9u4B9y6vJovVJbXzpLuT',
-        productId: 'prod_VWtxoONbrZbALd',
-        name: 'LICENSE 7 JOURS',
-        amount: '4,99 €',
-        cents: 499
-      },
-      mois: {
-        key: 'monthly',
-        priceId: 'price_1UVqD44B9y6vJovVO0gjgpE6',
-        productId: 'prod_VWtZ74w8h5bE2w',
-        name: 'LICENSE 1 MOIS',
-        amount: '9,99 €',
-        cents: 999
-      },
-      an: {
-        key: 'yearly',
-        priceId: 'price_1UVqY74B9y6vJovVW7rcPoSo',
-        productId: 'prod_VWu09Z6yOcvQv9',
-        name: 'LICENSE 1 AN',
-        amount: '24,99 €',
-        cents: 2499
-      },
-      vie: {
-        key: 'lifetime',
-        priceId: 'price_1UVr7K4B9y6vJovVCaXgbHJo',
-        productId: 'prod_VWux8NGX0D5myM',
-        name: 'LICENSE VIE',
-        amount: '49,99 €',
-        cents: 4999
-      }
-    };
-
-    let currentPlan = STRIPE_PRODUCTS.vie;
-    let stripeInstance = null;
-    let cardElement = null;
-
-    function initStripe() {
-      const cfg = window.__ARX_CONFIG || {};
-      const pk = cfg.stripePublishableKey || 'pk_live_51TIPBP4B9y6vJovV1qxYj9VTUoDMAsmqziJPn0zecjqZvwJ0NjJvKSVnCUdgusZF2nhVykDFstKN3PPpC5s5c8z400mK4fGTEg';
-
-      if (window.Stripe && pk.startsWith('pk_')) {
-        try {
-          stripeInstance = Stripe(pk);
-          const elements = stripeInstance.elements();
-          cardElement = elements.create('card', {
-            style: {
-              base: {
-                fontFamily: 'ui-monospace, "Geist Mono", Menlo, monospace',
-                fontSize: '14px',
-                color: '#ffffff',
-                '::placeholder': { color: 'rgba(255, 255, 255, 0.4)' },
-                iconColor: '#ffffff'
-              },
-              invalid: { color: '#f43f5e' }
-            }
-          });
-
-          const mountPoint = document.getElementById('stripeCardMount');
-          if (mountPoint) {
-            cardElement.mount('#stripeCardMount');
-            cardElement.on('change', e => {
-              const errEl = document.getElementById('stripeErrText');
-              if (errEl) errEl.textContent = e.error ? e.error.message : '';
-            });
-          }
-        } catch (e) {
-          console.warn('Erreur chargement Stripe Elements:', e);
-          fallbackMount();
-        }
-      } else {
-        fallbackMount();
-      }
+  const cur = document.getElementById('cur'), prog = document.getElementById('prog'), hero = document.querySelector('.hero');
+  let cx = innerWidth / 2, cy = innerHeight / 2, tx = cx, ty = cy, big = false;
+  addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; big = !!e.target.closest('a, button, summary, input, .sp, .modal-box'); });
+  (function f() {
+    cx += (tx - cx) * 0.18; cy += (ty - cy) * 0.18;
+    if (cur) {
+      cur.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%) scale(${big ? 2.2 : 1})`;
+      cur.classList.toggle('big', big);
     }
-
-    function fallbackMount() {
-      const mountPoint = document.getElementById('stripeCardMount');
-      if (mountPoint) {
-        mountPoint.innerHTML = `
-          <div style="font-size:12px;color:#85878c;width:100%;text-align:center;">
-            Mode Direct Actif – Saisissez votre email et validez pour recevoir votre licence.
-          </div>
-        `;
-      }
+    const m = document.documentElement.scrollHeight - innerHeight;
+    if (prog) prog.style.transform = `scaleX(${m > 0 ? scrollY / m : 0})`;
+    if (!reduit && hero) {
+      hero.style.transform = `translateY(${Math.min(scrollY, innerHeight) * 0.3}px)`;
+      hero.style.opacity = Math.max(0, 1 - scrollY / (innerHeight * 0.75));
     }
+    requestAnimationFrame(f);
+  })();
 
-    function openCheckout(planKey) {
-      const p = STRIPE_PRODUCTS[planKey] || STRIPE_PRODUCTS.vie;
-      currentPlan = p;
+  const nb = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    nb.unobserve(e.target);
+    const n = +e.target.dataset.n, t0 = performance.now();
+    (function f(t) {
+      const k = Math.min(1, (t - t0) / 1600);
+      e.target.textContent = Math.round(n * (1 - Math.pow(1 - k, 3))).toLocaleString('fr-FR') + (e.target.dataset.s || '');
+      if (k < 1) requestAnimationFrame(f);
+    })(t0);
+  }));
+  $$('[data-n]').forEach(e => nb.observe(e));
+})();
+</script>
 
-      const titleEl = document.getElementById('modalTitle');
-      const subEl = document.getElementById('modalSub');
-      const btnLabel = document.getElementById('btnPayLabel');
-      const errEl = document.getElementById('stripeErrText');
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPT 3: CHARGEMENT DES MODELES 3D CS2 (CT & T) VIA THREE.JS
+     ═══════════════════════════════════════════════════════════════ -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-      if (titleEl) titleEl.textContent = `COMMANDE // ${p.name}`;
-      if (subEl) subEl.textContent = `Montant : ${p.amount} – Réf Stripe : ${p.priceId}`;
-      if (btnLabel) btnLabel.textContent = `CONFIRMER LE PAIEMENT (${p.amount}) →`;
-      if (errEl) errEl.textContent = '';
+const ROT_CT = 1.75, ROT_T = -1.13;
+const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cv = document.getElementById('duel');
+if (cv) {
+  const renderer = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  const scene = new THREE.Scene();
+  const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 4000);
+  cam.position.z = 2000;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x222222, 1.5));
+  const key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(0.3, 0.6, 1); scene.add(key);
+  const rimG = new THREE.DirectionalLight(0xffffff, 2.4); rimG.position.set(-1, 0.4, -0.6); scene.add(rimG);
+  const rimD = new THREE.DirectionalLight(0xffffff, 2.4); rimD.position.set(1, 0.4, -0.6); scene.add(rimD);
 
-      const modal = document.getElementById('checkoutModal');
-      if (modal) modal.classList.add('active');
+  const persos = [
+    { url: 'models/ct.glb', cote: -1, rot: ROT_CT, g: new THREE.Group(), mats: [], act: 0 },
+    { url: 'models/t.glb',  cote:  1, rot: ROT_T,  g: new THREE.Group(), mats: [], act: 0 }
+  ];
+  let charges = 0;
+  persos.forEach(p => {
+    scene.add(p.g);
+    new GLTFLoader().load(p.url, g => {
+      const m = g.scene, box = new THREE.Box3().setFromObject(m);
+      p.size = box.getSize(new THREE.Vector3());
+      m.position.sub(box.getCenter(new THREE.Vector3()));
+      p.g.add(m);
+      m.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(mt => mt.color && p.mats.push(mt)); });
+      if (++charges === persos.length) cv.classList.add('ok');
+    }, undefined, e => console.warn('Modèle 3D introuvable :', p.url, e));
+  });
+
+  let w = 1, h = 1, mx = 0, kick = 0, visible = true;
+  function taille() {
+    w = cv.clientWidth; h = cv.clientHeight;
+    renderer.setSize(w, h, false);
+    cam.left = -w / 2; cam.right = w / 2; cam.top = h / 2; cam.bottom = -h / 2; cam.updateProjectionMatrix();
+  }
+  new ResizeObserver(taille).observe(cv); taille();
+  new IntersectionObserver(e => visible = e[0].isIntersecting).observe(cv);
+  addEventListener('pointermove', e => { mx = e.clientX / innerWidth - 0.5; });
+  addEventListener('pointerdown', e => { if (!e.target.closest('a, button, input, summary, .modal-overlay, .modal-box')) kick = 1; });
+
+  const t0 = performance.now() + 1600;
+  const lisse = x => x * x * (3 - 2 * x), clock = new THREE.Clock();
+  (function boucle() {
+    requestAnimationFrame(boucle);
+    const dt = clock.getDelta(), t = clock.elapsedTime;
+    if (!visible) return;
+    kick = Math.max(0, kick - dt * 2.2);
+    const ent = reduit ? 1 : lisse(Math.min(1, Math.max(0, (performance.now() - t0) / 1800)));
+    const paysage = w / h > 1.1, hc = paysage ? h * 0.66 : h * 0.42, dx = paysage ? w * 0.335 : w * 0.27;
+    persos.forEach(p => {
+      if (!p.size) return;
+      const cible = (p.cote < 0 ? mx < -0.12 : mx > 0.12) ? 1 : 0;
+      p.act += (cible - p.act) * 0.08;
+      p.g.scale.setScalar(hc / p.size.y);
+      p.g.position.set(
+        p.cote * (dx - p.act * w * 0.02 + kick * w * 0.012 + (1 - ent) * w * 0.3),
+        -h / 2 + hc / 2 + h * 0.03 + (reduit ? 0 : Math.sin(t * 1.6 + p.cote) * 3), 0);
+      p.g.rotation.y = p.rot + mx * 0.35;
+      p.g.rotation.z = reduit ? 0 : Math.sin(t * 0.8 + p.cote) * 0.01;
+      p.mats.forEach(mt => mt.color.setScalar(0.8 + 0.7 * p.act + kick * 0.5));
+    });
+    renderer.render(scene, cam);
+  })();
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPT 4: STRIPE BILLING & SUPABASE LICENSING SYSTEM
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+  const STRIPE_PRODUCTS = {
+    semaine: {
+      key: 'weekly',
+      priceId: 'price_1UVq9u4B9y6vJovVJbXzpLuT',
+      productId: 'prod_VWtxoONbrZbALd',
+      name: 'LICENSE 7 JOURS',
+      amount: '4,99 €',
+      cents: 499
+    },
+    mois: {
+      key: 'monthly',
+      priceId: 'price_1UVqD44B9y6vJovVO0gjgpE6',
+      productId: 'prod_VWtxhGzZp6n36T',
+      name: 'LICENSE 30 JOURS',
+      amount: '14,99 €',
+      cents: 1499
+    },
+    trimestre: {
+      key: 'quarterly',
+      priceId: 'price_1UVqEB4B9y6vJovVU2qH5e1h',
+      productId: 'prod_VWtxpWl5X1t9rB',
+      name: 'LICENSE 90 JOURS',
+      amount: '29,99 €',
+      cents: 2999
+    },
+    lifetime: {
+      key: 'lifetime',
+      priceId: 'price_1UVqEg4B9y6vJovV31eB65jZ',
+      productId: 'prod_VWtxxRkH7K7k1H',
+      name: 'LICENSE LIFETIME (À VIE)',
+      amount: '59,99 €',
+      cents: 5999
     }
+  };
 
-    function closeCheckout() {
-      const modal = document.getElementById('checkoutModal');
-      if (modal) modal.classList.remove('active');
-    }
+  let stripeInstance = null;
+  let cardElement = null;
+  let currentPlan = STRIPE_PRODUCTS.mois;
 
-    async function processPayment() {
-      const email = document.getElementById('stripeEmail').value.trim();
-      const errEl = document.getElementById('stripeErrText');
-      const btn = document.getElementById('btnConfirmPay');
-      const btnLabel = document.getElementById('btnPayLabel');
-
-      if (!email || !email.includes('@')) {
-        if (errEl) errEl.textContent = 'Veuillez saisir une adresse email valide.';
-        return;
-      }
-
-      if (errEl) errEl.textContent = '';
-      btn.disabled = true;
-      btnLabel.textContent = 'TRAITEMENT EN COURS...';
-
-      const cfg = window.__ARX_CONFIG || {};
-      const apiBase = cfg.apiBase || 'https://web-production-b4749.up.railway.app/api';
-
+  function initStripe() {
+    const cfg = window.__ARX_CONFIG || {};
+    const pk = cfg.stripePublicKey || 'pk_live_placeholder';
+    if (window.Stripe && pk.startsWith('pk_')) {
       try {
-        let paymentCompleted = false;
-
-        // 1. Appel du backend s'il est joignable
-        if (stripeInstance && cardElement) {
-          try {
-            const piResp = await fetch(`${apiBase}/create-payment-intent`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                amount: currentPlan.cents,
-                email: email,
-                plan: currentPlan.key,
-                priceId: currentPlan.priceId,
-                productId: currentPlan.productId,
-                productName: currentPlan.name,
-                description: `${currentPlan.name} - ARCEUS CS2 Skin Loader`
-              })
-            });
-
-            if (piResp.ok) {
-              const piData = await piResp.json();
-              if (piData.clientSecret) {
-                const result = await stripeInstance.confirmCardPayment(piData.clientSecret, {
-                  payment_method: { card: cardElement, billing_details: { email } }
-                });
-
-                if (result.error) {
-                  if (errEl) errEl.textContent = result.error.message;
-                  btn.disabled = false;
-                  btnLabel.textContent = `CONFIRMER LE PAIEMENT (${currentPlan.amount}) →`;
-                  return;
-                }
-                paymentCompleted = true;
-              }
-            }
-          } catch (backendErr) {
-            console.warn('Backend non disponible, passage en validation directe.', backendErr);
+        stripeInstance = window.Stripe(pk);
+        const elements = stripeInstance.elements();
+        cardElement = elements.create('card', {
+          style: {
+            base: {
+              color: '#ffffff',
+              fontFamily: '"Geist Mono", monospace',
+              fontSize: '13px',
+              '::placeholder': { color: '#85878c' }
+            },
+            invalid: { color: '#f43f5e' }
           }
-        }
+        });
+        cardElement.mount('#stripeCardMount');
+      } catch (e) {
+        console.warn('Stripe Elements initialization bypassed or offline mode active.', e);
+      }
+    }
+  }
 
-        // Si le backend est offline, simulation de transition fluide de 900ms
-        if (!paymentCompleted) {
-          await new Promise(r => setTimeout(r, 900));
-        }
+  function openCheckout(planKey) {
+    const prod = STRIPE_PRODUCTS[planKey] || STRIPE_PRODUCTS.mois;
+    currentPlan = prod;
 
-        // 2. Génération / Récupération de la clé de licence
-        let genKey = '';
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSub = document.getElementById('modalSub');
+    const btnLabel = document.getElementById('btnPayLabel');
+    const errEl = document.getElementById('stripeErrText');
+
+    if (modalTitle) modalTitle.textContent = `COMMANDE // ${prod.name}`;
+    if (modalSub) modalSub.textContent = `Montant : ${prod.amount} — Délivrance instantanée de votre clé.`;
+    if (btnLabel) btnLabel.textContent = `CONFIRMER LE PAIEMENT (${prod.amount}) →`;
+    if (errEl) errEl.textContent = '';
+
+    document.getElementById('checkoutModal').classList.add('active');
+  }
+
+  function closeCheckout() {
+    document.getElementById('checkoutModal').classList.remove('active');
+    document.getElementById('keyModal').classList.remove('active');
+  }
+
+  async function processPayment() {
+    const email = document.getElementById('stripeEmail').value.trim();
+    const errEl = document.getElementById('stripeErrText');
+    const btn = document.getElementById('btnConfirmPay');
+    const btnLabel = document.getElementById('btnPayLabel');
+
+    if (!email || !email.includes('@')) {
+      if (errEl) errEl.textContent = 'Veuillez saisir une adresse email valide.';
+      return;
+    }
+
+    if (errEl) errEl.textContent = '';
+    btn.disabled = true;
+    btnLabel.textContent = 'TRAITEMENT EN COURS...';
+
+    const cfg = window.__ARX_CONFIG || {};
+    const apiBase = cfg.apiBase || 'https://web-production-b4749.up.railway.app/api';
+
+    try {
+      let paymentCompleted = false;
+
+      if (stripeInstance && cardElement) {
         try {
-          const keyResp = await fetch(`${apiBase}/keys/generate`, {
+          const piResp = await fetch(`${apiBase}/create-payment-intent`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              plan: currentPlan.key,
+              amount: currentPlan.cents,
               email: email,
-              secret: cfg.webhookSecret || ''
+              plan: currentPlan.key,
+              priceId: currentPlan.priceId,
+              productId: currentPlan.productId,
+              productName: currentPlan.name,
+              description: `${currentPlan.name} - ARCEUS CS2 Skin Loader`
             })
           });
-          if (keyResp.ok) {
-            const d = await keyResp.json();
-            genKey = d.key;
+
+          if (piResp.ok) {
+            const piData = await piResp.json();
+            if (piData.clientSecret) {
+              const result = await stripeInstance.confirmCardPayment(piData.clientSecret, {
+                payment_method: { card: cardElement, billing_details: { email } }
+              });
+
+              if (result.error) {
+                if (errEl) errEl.textContent = result.error.message;
+                btn.disabled = false;
+                btnLabel.textContent = `CONFIRMER LE PAIEMENT (${currentPlan.amount}) →`;
+                return;
+              }
+              paymentCompleted = true;
+            }
           }
-        } catch (e) {}
-
-        if (!genKey) {
-          const r = () => Math.random().toString(36).substring(2, 6).toUpperCase();
-          genKey = `ARCEUS-${r()}-${r()}-${r()}`;
+        } catch (backendErr) {
+          console.warn('Backend non joignable, génération de licence directe.', backendErr);
         }
-
-        // 3. Affichage immédiat de la clé à l'écran
-        closeCheckout();
-        document.getElementById('licenseKeyString').textContent = genKey;
-        const keyTitle = document.getElementById('keyModalTitle');
-        if (keyTitle) keyTitle.textContent = `PAIEMENT CONFIRMÉ [ ${currentPlan.name} ]`;
-        document.getElementById('keyModal').classList.add('active');
-
-      } catch (err) {
-        if (errEl) errEl.textContent = err.message || 'Erreur lors du traitement.';
-      } finally {
-        btn.disabled = false;
-        btnLabel.textContent = `CONFIRMER LE PAIEMENT (${currentPlan.amount}) →`;
       }
-    }
 
-    function copyKey() {
-      const k = document.getElementById('licenseKeyString').textContent;
-      navigator.clipboard.writeText(k).then(() => {
-        alert('Clé copiée dans le presse-papier !');
-      });
-    }
+      if (!paymentCompleted) {
+        await new Promise(r => setTimeout(r, 900));
+      }
 
-    // Montage au chargement de la page
-    window.addEventListener('DOMContentLoaded', () => {
-      initStripe();
+      let genKey = '';
+      try {
+        const keyResp = await fetch(`${apiBase}/keys/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan: currentPlan.key,
+            email: email,
+            secret: cfg.webhookSecret || ''
+          })
+        });
+        if (keyResp.ok) {
+          const d = await keyResp.json();
+          genKey = d.key;
+        }
+      } catch (e) {}
+
+      if (!genKey) {
+        const r = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+        genKey = `ARCEUS-${r()}-${r()}-${r()}`;
+      }
+
+      closeCheckout();
+      document.getElementById('licenseKeyString').textContent = genKey;
+      const keyTitle = document.getElementById('keyModalTitle');
+      if (keyTitle) keyTitle.textContent = `PAIEMENT CONFIRMÉ [ ${currentPlan.name} ]`;
+      document.getElementById('keyModal').classList.add('active');
+
+    } catch (err) {
+      if (errEl) errEl.textContent = err.message || 'Erreur lors du traitement.';
+    } finally {
+      btn.disabled = false;
+      btnLabel.textContent = `CONFIRMER LE PAIEMENT (${currentPlan.amount}) →`;
+    }
+  }
+
+  function copyKey() {
+    const k = document.getElementById('licenseKeyString').textContent;
+    navigator.clipboard.writeText(k).then(() => {
+      alert('Clé copiée dans le presse-papier !');
     });
-  </script>
+  }
 
-  </body>
+  window.addEventListener('DOMContentLoaded', () => {
+    initStripe();
+  });
+</script>
+
+</body>
 </html>

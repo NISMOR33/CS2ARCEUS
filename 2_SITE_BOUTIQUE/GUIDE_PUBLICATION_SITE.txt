@@ -1,21 +1,29 @@
 ===============================================================
-  ARCEUS // SITE WEB BOUTIQUE (PRÊT À ÊTRE PUBLIÉ)
+  ARCEUS // SITE WEB BOUTIQUE (AVEC MODÈLES 3D INTÉGRÉS)
 ===============================================================
 
-Ce dossier contient tout ce qu'il faut pour héberger votre site vitrine.
+Ce dossier contient tout le site boutique haute performance avec rendu 3D interactif CS2 (modèles CT & T).
+
+ARCHITECTURE DES FICHIERS :
+- index.html               : Page principale avec Three.js 3D, particules et checkout Stripe
+- arx-config.js            : Clés Stripe & endpoints API
+- models/                  : Dossier contenant les modèles 3D Counter-Strike 2
+    ├── ct.glb             : Modèle 3D Counter-Terroriste interactif
+    └── t.glb              : Modèle 3D Terroriste interactif
+- logo.ico / images        : Logos et visuels du projet
 
 COMMENT LE PUBLIER GRATUITEMENT EN 30 SECONDES :
 Option A (Recommandé) : Netlify Drop
 1. Allez sur https://app.netlify.com/drop
-2. Glissez-déposez TOUT ce dossier '2_SITE_BOUTIQUE' directement dans la page.
-3. Votre site est immédiatement en ligne avec une URL en https:// !
+2. Glissez-déposez TOUT ce dossier '2_SITE_BOUTIQUE' (y compris le dossier 'models') directement dans la page.
+3. Votre site est immédiatement en ligne en HTTPS avec les modèles 3D interactifs !
 
 Option B : Vercel / GitHub Pages / Cloudflare Pages
-- Glissez-déposez simplement ces fichiers à la racine de votre projet.
+- Glissez-déposez le contenu du dossier à la racine de votre projet ou hébergement web.
 
 LIENS DE PAIEMENT STRIPE INTÉGRÉS :
-- 7 Jours  (4,99 €)  : https://buy.stripe.com/eVqaEQ4O3bs63sL8Urf7i00
-- 1 Mois   (9,99 €)  : https://buy.stripe.com/4gMfZaa8n7bQbZhgmTf7i01
-- 1 An     (24,99 €) : https://buy.stripe.com/cNidR2eoD8fUfbt7Qnf7i02
-- À Vie    (49,99 €) : https://buy.stripe.com/dRmbIUfsH67Mgfx8Urf7i03
+- 7 Jours   (4,99 €)  : https://buy.stripe.com/eVqaEQ4O3bs63sL8Urf7i00
+- 1 Mois    (14,99 €) : Intégré Stripe Elements automatique
+- 3 Mois    (29,99 €) : Intégré Stripe Elements automatique
+- Lifetime  (59,99 €) : Intégré Stripe Elements automatique
 ===============================================================

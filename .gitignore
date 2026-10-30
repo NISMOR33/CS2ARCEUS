@@ -37,3 +37,7 @@ SITE WEB_BACKUP/
 *.backup*
 *.zip
 Lootline/
+
+# Local Netlify folder & Dependencies
+.netlify
+node_modules/

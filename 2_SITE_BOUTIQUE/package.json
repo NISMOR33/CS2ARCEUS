@@ -1,0 +1,8 @@
+{
+  "name": "arceus-storefront",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "stripe": "23.1.0"
+  }
+}

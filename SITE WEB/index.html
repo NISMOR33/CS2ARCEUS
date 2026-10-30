@@ -11,16 +11,16 @@
 <link rel="icon" type="image/x-icon" href="logo.ico">
 <link rel="preload" href="models/ct.glb" as="fetch" crossorigin>
 <link rel="preload" href="models/t.glb" as="fetch" crossorigin>
-<script>document.documentElement.classList.add("js")</script>
-<script src="https://js.stripe.com/v3/"></script>
-<script src="arx-config.js"></script>
+<script src="https://js.stripe.com/v3/" defer></script>
+<script src="arx-config.js" defer></script>
 <style>
   :root { --m: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; --l: rgba(255,255,255,.14); --g: #9b9b9b; }
   * { box-sizing: border-box; }
   html { background: #000; scroll-behavior: smooth; }
   body { margin: 0; color: #fff; font: 400 1rem/1.6 Geist, system-ui, -apple-system, "Segoe UI", sans-serif; }
   #sphere-fond { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
-  #objets { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; filter: grayscale(1) contrast(1.1); }
+  #objets { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; filter: grayscale(1) contrast(1.1); opacity: 0; visibility: hidden; transition: opacity .25s ease; }
+  #objets.ready { opacity: 1; visibility: visible; }
   main, section, footer { position: relative; z-index: 2; }
   a { color: inherit; }
   section { padding: clamp(80px, 12vw, 150px) 20px; scroll-margin-top: 40px; }
@@ -31,7 +31,7 @@
   .g { color: var(--g); }
 
   /* Barre de navigation */
-  .nav { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font-family: var(--m); animation: nv .5s .4s both cubic-bezier(.2,.7,.1,1); }
+  .nav { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font-family: var(--m); animation: nv .9s 1.85s both cubic-bezier(.2,.7,.1,1); }
   @keyframes nv { from { opacity: 0; transform: translate(-50%, -30px); } }
   .nav a { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: #85878c; background: #121212; border: 1px solid transparent; transition: transform .2s, background .2s, color .2s, border-color .2s, box-shadow .2s; }
   .nav a:hover, .nav a:focus-visible { color: #fff; background: #1b1b1b; border-color: rgba(255,255,255,.16); transform: translateY(6px); box-shadow: 0 10px 24px rgba(0,0,0,.6); }
@@ -50,7 +50,10 @@
   #cur { position: fixed; left: 0; top: 0; width: 30px; height: 30px; border: 1px solid #fff; border-radius: 50%; mix-blend-mode: difference; pointer-events: none; z-index: 70; transition: background .25s; }
   #cur.big { background: #fff; }
   @media (pointer: coarse) { #cur { display: none; } }
-  #intro { display: none !important; }
+  #intro { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: hidden; pointer-events: none; background: #000; animation: intro-up .9s 1.4s cubic-bezier(.7,0,.2,1) forwards; }
+  #intro b { padding-left: .3em; color: #fff; font: 600 clamp(2.4rem, 9vw, 6rem) Geist, system-ui, sans-serif; animation: intro-word 1.2s both cubic-bezier(.2,.7,.1,1); }
+  @keyframes intro-word { from { opacity: 0; filter: blur(8px); letter-spacing: .9em; transform: scale(.96); } to { opacity: 1; filter: blur(0); letter-spacing: .3em; transform: scale(1); } }
+  @keyframes intro-up { to { visibility: hidden; transform: translateY(-100%); } }
 
   /* Masque de révélation de texte */
   .mk { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .02em .1em; }
@@ -59,15 +62,8 @@
   .js .rv { opacity: 0; transform: translateY(36px); transition: opacity .9s, transform .9s cubic-bezier(.2,.7,.1,1); transition-delay: calc(var(--d, 0) * 100ms); }
   .js .rv.vu { opacity: 1; transform: none; }
 
-  /* Le Hero est TOUJOURS visible instantanément au chargement (pas d'écran noir) */
-  .hero, .hero h1, .hero p, .hero .acts, .hero .conf, .hero .sc, .hero .eq {
-    opacity: 1 !important;
-    transform: none !important;
-    visibility: visible !important;
-  }
-  .hero .mk > span {
-    transform: none !important;
-  }
+  /* Sans JavaScript le contenu reste visible ; les masques ne sont créés
+     qu'une fois le système d'animation initialisé. */
   .sp { position: relative; overflow: hidden; }
   .sp::before { content: ""; position: absolute; inset: 0; background: radial-gradient(320px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,.14), transparent 60%); opacity: 0; transition: opacity .3s; pointer-events: none; }
   .sp:hover::before { opacity: 1; }
@@ -119,22 +115,25 @@
   .pas p { color: #b5b5b5; }
 
   /* Offres & Vitrines 3D Armes */
-  .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 40px; }
+  .grille { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 40px; align-items: stretch; }
   @media (max-width: 1040px) { .grille { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 640px) { .grille { grid-template-columns: 1fr; } }
-  .card { padding: 26px 22px 24px; position: relative; }
+  .card { min-width: 0; height: 100%; padding: 26px 22px 24px; position: relative; display: grid; grid-template-rows: 118px auto auto auto 1fr auto; align-content: stretch; }
   .card .desc { color: var(--g); font-size: .9rem; }
-  .prix { display: flex; align-items: baseline; gap: 6px; margin: 18px 0 16px; font-size: clamp(2.2rem, 4vw, 2.9rem); font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
-  .prix small { font-size: .9rem; font-weight: 400; color: var(--g); letter-spacing: 0; }
-  .barre { font-size: 0.48em; color: #5a5a5a; text-decoration: line-through; font-weight: 400; margin-right: 4px; letter-spacing: 0; }
-  .remise { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; font-family: var(--m); color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); padding: 1px 5px; border-radius: 4px; margin-left: auto; letter-spacing: .04em; }
-  .card ul { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 10px; font-size: .93rem; color: #d0d0d0; }
+  .prix { min-width: 0; margin: 18px 0 22px; font-variant-numeric: tabular-nums; }
+  .prix-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+  .montant { min-width: 0; white-space: nowrap; font-size: clamp(2.15rem, 3.15vw, 2.8rem); line-height: 1; font-weight: 600; letter-spacing: -.05em; }
+  .prix-meta { display: flex; align-items: center; gap: 9px; min-height: 24px; margin-top: 9px; }
+  .prix small { font-size: .82rem; font-weight: 400; color: var(--g); letter-spacing: 0; white-space: nowrap; }
+  .barre { font-size: .82rem; color: #666; text-decoration: line-through; font-weight: 400; letter-spacing: 0; white-space: nowrap; }
+  .remise { flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; font-family: var(--m); color: #fff; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.2); padding: 3px 7px; border-radius: 5px; letter-spacing: .04em; }
+  .card ul { align-self: start; list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 10px; font-size: .93rem; color: #d0d0d0; }
   .card li { display: flex; align-items: center; gap: 10px; }
   .card li::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: .6; }
   .cta { width: 100%; }
   .card > * { opacity: 0; transform: translateY(12px); transition: opacity .35s, transform .35s; }
   .grille.on .card > * { opacity: 1; transform: none; transition: opacity .7s, transform .7s; transition-delay: calc(1.3s + var(--c) * .15s + var(--n) * .08s); }
-  .card > :nth-child(1) { --n: 0; } .card > :nth-child(2) { --n: 1; } .card > :nth-child(3) { --n: 2; } .card > :nth-child(4) { --n: 3; } .card > :nth-child(5) { --n: 4; }
+  .card > :nth-child(1) { --n: 0; } .card > :nth-child(2) { --n: 1; } .card > :nth-child(3) { --n: 2; } .card > :nth-child(4) { --n: 3; } .card > :nth-child(5) { --n: 4; } .card > :nth-child(6) { --n: 5; }
 
   /* Vitrines 3D Armes & Bombe C4 */
   .vit { height: 118px; margin: -4px 0 6px; }
@@ -198,12 +197,15 @@
     .g3, .grille { grid-template-columns: 1fr; } .grille { gap: 14px; }
     .stats { grid-template-columns: 1fr 1fr; margin-top: 60px; }
     .pas li { grid-template-columns: 40px 1fr; gap: 6px 14px; } .pas p { grid-column: 2; }
-    .card { padding: 20px; } .card li:nth-child(n+3) { display: none; } .prix { margin: 10px 0; }
+    .card { padding: 20px; grid-template-rows: 90px auto auto auto 1fr auto; } .card li:nth-child(n+3) { display: none; } .prix { margin: 14px 0 18px; }
   }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } #intro { display: none; } .nav, .mt, .sc { animation: none !important; } .js .rv { opacity: 1; transform: none; } .mk > span { transform: none; } }
 
   /* ═══════════════════════════════════════════════════════════════
      STRIPE MODAL & KEY DELIVERY (ARCEUS THEME)
+     ═══════════════════════════════════════════════════════════════ */
+  /* ═══════════════════════════════════════════════════════════════
+     MODAL DE PAIEMENT STRIPE GRAND FORMAT & SPLIT-SCREEN SANS SCROLL
      ═══════════════════════════════════════════════════════════════ */
   .modal-overlay {
     position: fixed;
@@ -215,43 +217,247 @@
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: clamp(10px, 2vw, 24px);
     font-family: var(--m);
+    animation: mdIn .2s ease-out;
   }
   .modal-overlay.active {
     display: flex;
   }
+  @keyframes mdIn { from { opacity: 0; } to { opacity: 1; } }
+
   .modal-box {
     background: #0d0e12;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 14px;
-    width: 100%;
-    max-width: 440px;
-    padding: 28px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
     position: relative;
     color: #fff;
   }
-  .modal-close {
-    position: absolute;
-    top: 18px;
-    right: 20px;
-    background: transparent;
-    border: none;
-    color: #85878c;
-    font-size: 22px;
-    line-height: 1;
-    cursor: pointer;
-    transition: color .2s;
+
+  .modal-checkout-grand {
+    background: #090a0d;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 960px;
+    height: min(640px, 92vh);
+    box-shadow: 0 32px 90px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    overflow: hidden;
   }
-  .modal-close:hover { color: #fff; }
+
+  .modal-side-product {
+    background: linear-gradient(180deg, #101217 0%, #07080a 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 20px;
+    overflow: hidden;
+  }
+
+  .modal-3d-wrap {
+    position: relative;
+    width: 100%;
+    height: 195px;
+    flex: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 75%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  #modal-char-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: grayscale(1) contrast(1.12);
+  }
+
+  .modal-3d-tag {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: #a0a0a0;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .modal-prod-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .modal-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-tag-live {
+    font-size: 10px;
+    font-weight: 700;
+    color: #10b981;
+    letter-spacing: .08em;
+  }
+
+  .modal-tag-promo {
+    font-size: 10px;
+    font-weight: 700;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: .06em;
+  }
+
+  .modal-prod-info h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -.02em;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .modal-prod-sub {
+    font-size: 11px;
+    color: #8c8f96;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .modal-prix-box {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+  }
+
+  .modal-prix-val {
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    color: #fff;
+  }
+
+  .modal-prix-old {
+    font-size: 0.85rem;
+    color: #63656d;
+    text-decoration: line-through;
+  }
+
+  .modal-prix-period {
+    font-size: 10px;
+    color: #85878c;
+    margin-left: auto;
+  }
+
+  .modal-perks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .modal-perks li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    color: #c0c2c8;
+  }
+
+  .modal-perks li svg {
+    flex: none;
+    stroke: #ffffff;
+  }
+
+  .modal-side-payment {
+    display: flex;
+    flex-direction: column;
+    padding: 22px 26px;
+    position: relative;
+    overflow-y: auto;
+  }
+
+  .modal-pay-header {
+    margin-bottom: 10px;
+    padding-right: 32px;
+  }
+
+  .modal-pay-header h4 {
+    margin: 0 0 3px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  .modal-pay-header p {
+    margin: 0;
+    font-size: 11px;
+    color: #85878c;
+    line-height: 1.35;
+  }
+
+  .modal-form-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .modal-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #8c8f96;
+  }
+
+  .modal-label-sub {
+    font-size: 9.5px;
+    text-transform: none;
+    color: #63656d;
+    letter-spacing: 0;
+  }
+
   .stripe-field {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
+    padding: 8px 11px;
+    transition: border-color .2s;
   }
+  .stripe-field:focus-within {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
   .stripe-input {
     width: 100%;
     box-sizing: border-box;
@@ -260,8 +466,21 @@
     outline: none;
     color: #ffffff;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12.5px;
   }
+
+  #stripeCardMount {
+    min-height: 145px;
+    padding: 2px 4px;
+  }
+
+  #stripeErrText {
+    font-size: 11px;
+    color: #f43f5e;
+    min-height: 14px;
+    line-height: 1.3;
+  }
+
   .btn-confirm-pay {
     width: 100%;
     height: 44px;
@@ -270,15 +489,117 @@
     border: none;
     border-radius: 8px;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
     cursor: pointer;
     transition: background .2s, transform .1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
-  .btn-confirm-pay:hover { background: #e2e8f0; }
-  .btn-confirm-pay:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-confirm-pay:hover {
+    background: #e2e8f0;
+  }
+  .btn-confirm-pay:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .modal-trust-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: #63656d;
+  }
+  .trust-item svg {
+    flex: none;
+    stroke: #8c8f96;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: #85878c;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color .2s;
+    z-index: 10;
+  }
+  .modal-close:hover { color: #fff; }
+
+  /* Adaptabilité tous formats (Desktop, Laptop, Tablette, Mobile) */
+  @media (max-width: 860px) {
+    .modal-checkout-grand {
+      grid-template-columns: 1fr;
+      max-height: 94vh;
+      height: auto;
+      overflow-y: auto;
+      border-radius: 14px;
+    }
+    .modal-side-product {
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 16px;
+    }
+    .modal-3d-wrap {
+      height: 130px;
+    }
+    .modal-perks {
+      display: none; /* Allège pour affichage immédiat sur mobile */
+    }
+    .modal-side-payment {
+      padding: 16px;
+    }
+  }
+
+  @media (max-height: 700px) and (min-width: 861px) {
+    .modal-checkout-grand {
+      height: 94vh;
+    }
+    .modal-3d-wrap {
+      height: 155px;
+    }
+    .modal-side-product, .modal-side-payment {
+      padding: 14px 18px;
+    }
+    .modal-perks li {
+      font-size: 9.5px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modal-overlay {
+      padding: 6px;
+    }
+    .modal-3d-wrap {
+      height: 110px;
+    }
+    .modal-side-payment {
+      padding: 12px;
+    }
+    .modal-trust-footer {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -286,6 +607,7 @@
 <canvas id="sphere-fond" aria-hidden="true"></canvas>
 <canvas id="objets" aria-hidden="true"></canvas>
 <div id="prog"></div><div id="cur" aria-hidden="true"></div>
+<div id="intro" aria-hidden="true"><b>ARCEUS</b></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-g" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></symbol>
@@ -366,7 +688,7 @@
           <div class="vit" data-m="deagle"></div>
           <h3>ARCEUS Pass 7J</h3>
           <p class="desc">Pour tester sur un week-end</p>
-          <div class="prix"><span class="barre">6,99 €</span>4,99 € <small>/ semaine</small><span class="remise">-25%</span></div>
+          <div class="prix"><div class="prix-main"><span class="montant">4,99 €</span><span class="remise">-25%</span></div><div class="prix-meta"><span class="barre">6,99 €</span><small>/ semaine</small></div></div>
           <ul><li>Accès intégral 7 jours</li><li>Tous couteaux, gants & armes</li><li>Presets Pro téléchargeables</li><li>Protection Ring-0 VAC Safe</li><li>Support Discord 24/7</li></ul>
           <button class="cta" type="button" onclick="openCheckout('semaine')">Commander 7J</button>
         </article>
@@ -375,7 +697,7 @@
           <div class="vit" data-m="ak47"></div>
           <h3>ARCEUS Mensuel</h3>
           <p class="desc">Pour les joueurs réguliers</p>
-          <div class="prix"><span class="barre">19,99 €</span>14,99 € <small>/ mois</small><span class="remise">-25%</span></div>
+          <div class="prix"><div class="prix-main"><span class="montant">14,99 €</span><span class="remise">-25%</span></div><div class="prix-meta"><span class="barre">19,99 €</span><small>/ mois</small></div></div>
           <ul><li>Accès intégral 30 jours</li><li>Mises à jour prioritaires CS2</li><li>StatTrak™ & Float custom</li><li>Profils sauvegardés dans le cloud</li><li>Support VIP dédié</li></ul>
           <button class="cta pl" type="button" onclick="openCheckout('mois')">Commander 1 Mois</button>
         </article>
@@ -384,7 +706,7 @@
           <div class="vit" data-m="awp"></div>
           <h3>ARCEUS Trimestre</h3>
           <p class="desc">Le choix le plus populaire</p>
-          <div class="prix"><span class="barre">39,99 €</span>29,99 € <small>/ 3 mois</small><span class="remise">-25%</span></div>
+          <div class="prix"><div class="prix-main"><span class="montant">29,99 €</span><span class="remise">-25%</span></div><div class="prix-meta"><span class="barre">39,99 €</span><small>/ 3 mois</small></div></div>
           <ul><li>Accès intégral 90 jours</li><li>Économisez 33% sur l'année</li><li>Accès anticipé nouvelles armes</li><li>Support prioritaire niveau 2</li><li>Garantie Zéro Détection</li></ul>
           <button class="cta" type="button" onclick="openCheckout('trimestre')">Commander 3 Mois</button>
         </article>
@@ -393,7 +715,7 @@
           <div class="vit" data-m="karambit"></div>
           <h3>ARCEUS Lifetime</h3>
           <p class="desc">Accès définitif permanent</p>
-          <div class="prix"><span class="barre">79,99 €</span>59,99 € <small>/ unique</small><span class="remise">-25%</span></div>
+          <div class="prix"><div class="prix-main"><span class="montant">59,99 €</span><span class="remise">-25%</span></div><div class="prix-meta"><span class="barre">79,99 €</span><small>/ paiement unique</small></div></div>
           <ul><li>Licence permanente à vie</li><li>Mises à jour majeures gratuites</li><li>Badge VIP exclusif communauté</li><li>Accès canal privé développeurs</li><li>Support personnalisé 1-on-1</li></ul>
           <button class="cta pl" type="button" onclick="openCheckout('lifetime')">Accès Lifetime</button>
         </article>
@@ -457,35 +779,117 @@
 <!-- ═══════════════════════════════════════════════════════════════
      STRIPE CHECKOUT MODAL & KEY DELIVERY
      ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════
+     STRIPE CHECKOUT MODAL & KEY DELIVERY (GRAND FORMAT SANS SCROLL)
+     ═══════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="checkoutModal">
-  <div class="modal-box">
-    <button type="button" class="modal-close" onclick="closeCheckout()">&times;</button>
-    <div id="modalTitle" style="font-size: 14px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 6px;">COMMANDE // ARCEUS</div>
-    <div id="modalSub" style="font-size: 12px; color: #85878c; margin-bottom: 20px;">Délivrance instantanée de votre clé.</div>
+  <div class="modal-box modal-checkout-grand">
+    <button type="button" class="modal-close" onclick="closeCheckout()" aria-label="Fermer la commande">&times;</button>
+    
+    <!-- COLONNE GAUCHE : MODÈLE CS2 3D & RÉCAPITULATIF PRODUIT -->
+    <div class="modal-side-product">
+      <div class="modal-3d-wrap">
+        <canvas id="modal-char-canvas"></canvas>
+        <div class="modal-3d-tag">RING-0 // UNDETECTED</div>
+      </div>
+      
+      <div class="modal-prod-info">
+        <div class="modal-badge-row">
+          <span class="modal-tag-live">● EN STOCK</span>
+          <span class="modal-tag-promo">-25% APPLIQUÉ</span>
+        </div>
+        <h3 id="modalProdTitle">ARCEUS PASS MENSUEL</h3>
+        <p id="modalProdDesc" class="modal-prod-sub">Accès complet 30 jours, idéal pour les joueurs réguliers.</p>
+        
+        <div class="modal-prix-box">
+          <span id="modalPrixMontant" class="modal-prix-val">14,99 €</span>
+          <span id="modalPrixBarre" class="modal-prix-old">19,99 €</span>
+          <span id="modalPrixPeriod" class="modal-prix-period">30 jours d’accès immédiat</span>
+        </div>
 
-    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #85878c; margin-bottom: 6px;">Adresse Email (réception de licence)</div>
-    <div class="stripe-field">
-      <input type="email" id="stripeEmail" class="stripe-input" placeholder="votre-email@exemple.com" required>
+        <ul class="modal-perks">
+          <li>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Injection Kernel Ring-0 (100% furtif VAC Live)</span>
+          </li>
+          <li>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>100% Couteaux, Gants, Skins & Floats custom</span>
+          </li>
+          <li>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Génération instantanée de la clé de licence</span>
+          </li>
+          <li>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Mises à jour automatiques CS2 & support 24/7</span>
+          </li>
+        </ul>
+      </div>
     </div>
 
-    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #85878c; margin-bottom: 6px;">Paiement Sécurisé Carte Bancaire (Stripe)</div>
-    <div class="stripe-field" id="stripeCardMount" style="min-height: 40px; display: flex; align-items: center;">
-      <!-- Stripe Elements -->
+    <!-- COLONNE DROITE : FORMULAIRE STRIPE ÉPURÉ & OPTIMISÉ -->
+    <div class="modal-side-payment">
+      <div class="modal-pay-header">
+        <h4>CHECKOUT SÉCURISÉ // STRIPE</h4>
+        <p>Validez votre paiement pour obtenir votre clé de licence sans délai.</p>
+      </div>
+
+      <div class="modal-form-body">
+        <div>
+          <label class="modal-label" for="stripeEmail">
+            <span>Email de réception</span>
+            <span class="modal-label-sub">Votre licence y sera envoyée</span>
+          </label>
+          <div class="stripe-field" style="margin-top: 6px;">
+            <input type="email" id="stripeEmail" class="stripe-input" placeholder="votre-email@exemple.com" required autocomplete="email">
+          </div>
+        </div>
+
+        <div>
+          <label class="modal-label">
+            <span>Paiement sécurisé</span>
+            <span class="modal-label-sub">Chiffrement 256 bits</span>
+          </label>
+          <div class="stripe-field" id="stripeCardMount" style="margin-top: 6px;">
+            <!-- Stripe Payment Element monté ici -->
+          </div>
+        </div>
+
+        <div id="stripeErrText"></div>
+
+        <button type="button" id="btnConfirmPay" class="btn-confirm-pay" onclick="processPayment()">
+          <span id="btnPayLabel">CONFIRMER LE PAIEMENT (14,99 €) →</span>
+        </button>
+
+        <div class="modal-trust-footer">
+          <div class="trust-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Stripe SSL 256-bit</span>
+          </div>
+          <div class="trust-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>Clé immédiate</span>
+          </div>
+          <div class="trust-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>Support 24/7</span>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div id="stripeErrText" style="font-size: 11px; color: #f43f5e; min-height: 16px; margin-bottom: 14px;"></div>
-
-    <button type="button" id="btnConfirmPay" class="btn-confirm-pay" onclick="processPayment()">
-      <span id="btnPayLabel">CONFIRMER LE PAIEMENT →</span>
-    </button>
   </div>
 </div>
 
 <div class="modal-overlay" id="keyModal">
-  <div class="modal-box" style="text-align: center;">
-    <div id="keyModalTitle" style="font-size: 14px; font-weight: 800; color: #10b981; margin-bottom: 6px;">PAIEMENT CONFIRMÉ</div>
-    <div style="font-size: 12px; color: #85878c; margin-bottom: 18px;">Voici votre clé d'accès au launcher ARCEUS :</div>
-    <div style="background: rgba(0,0,0,0.6); border: 1px dashed rgba(255,255,255,0.25); border-radius: 8px; padding: 14px; font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 18px; letter-spacing: 0.06em;" id="licenseKeyString">ARCEUS-XXXX-XXXX-XXXX</div>
+  <div class="modal-box" style="text-align: center; max-width: 480px; padding: 32px 28px; border-radius: 16px;">
+    <button type="button" class="modal-close" onclick="closeCheckout()" aria-label="Fermer la fenêtre">&times;</button>
+    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); margin-bottom: 14px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div id="keyModalTitle" style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: .04em;">PAIEMENT CONFIRMÉ</div>
+    <div style="font-size: 12px; color: #85878c; margin-bottom: 20px;">Votre clé d'accès au launcher ARCEUS est disponible :</div>
+    <div style="background: rgba(0,0,0,0.7); border: 1px dashed rgba(255,255,255,0.25); border-radius: 10px; padding: 14px; font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 20px; letter-spacing: .08em; font-family: var(--m); word-break: break-all;" id="licenseKeyString">ARCEUS-XXXX-XXXX-XXXX</div>
     <button type="button" class="btn-confirm-pay" onclick="copyKey()">COPIER LA CLÉ</button>
   </div>
 </div>
@@ -495,7 +899,8 @@
      ═══════════════════════════════════════════════════════════════ -->
 <script>
 (() => {
-  const NB = 26000;
+  // 10 000 particules suffisent visuellement et libèrent fortement le thread principal.
+  const NB = 10000;
   const RAYON = 0.49;
   const HAUT = 0.62, BAS = 0.95, FIN = 0.55;
   const VIT = 0.10, INC = 0.25, TP = 1.5, PERS = 4;
@@ -679,19 +1084,43 @@
   const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $$ = q => [...document.querySelectorAll(q)];
 
-  $$('h2').forEach(h => {
+  // Le mode animé n'est activé qu'une fois le DOM disponible. Ainsi, une
+  // erreur réseau ou JavaScript ne peut plus laisser le contenu invisible.
+  document.documentElement.classList.add('js');
+
+  $$('h1, h2').forEach(h => {
     h.innerHTML = h.textContent.trim().split(' ').map((w, i) => `<span class="mk"><span style="--i:${i}">${w}</span></span>`).join(' ');
     h.classList.add('rv-t');
   });
 
   $$('.mt').forEach(t => t.append(t.firstElementChild.cloneNode(true)));
 
-  const cibles = $$('.rv-t, .g3 > div, figure, .stats > div, .pas li, details, .note, section .w > p.g, .fin form');
+  const cibles = $$('.rv-t, .g3 > div, figure, .stats > div, .pas li, details, .hero p, .hero .acts, .note, section .w > p.g, .fin form');
   cibles.forEach(e => { if (!e.classList.contains('rv-t')) { e.classList.add('rv'); e.style.setProperty('--d', [...e.parentNode.children].indexOf(e)); } });
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); } }), { threshold: 0.05, rootMargin: '80px 0px' });
-  cibles.forEach(e => io.observe(e));
+  let io = null;
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('vu');
+        io.unobserve(e.target);
+      }
+    }), { threshold: 0.05, rootMargin: '80px 0px' });
+    setTimeout(() => cibles.forEach(e => io.observe(e)), reduit ? 0 : 1450);
+  } else {
+    cibles.forEach(e => e.classList.add('vu'));
+  }
   // Révélation immédiate si déjà dans la fenêtre visible
-  cibles.forEach(e => { const r = e.getBoundingClientRect(); if (r.top < window.innerHeight + 60) e.classList.add('vu'); });
+  setTimeout(() => cibles.forEach(e => {
+    const r = e.getBoundingClientRect();
+    if (r.top < window.innerHeight + 60) e.classList.add('vu');
+  }), reduit ? 0 : 1500);
+
+  // Filet de sécurité : le contenu visible est révélé même si le navigateur
+  // retarde les callbacks d'observation à cause du rendu 3D.
+  setTimeout(() => cibles.forEach(e => {
+    const r = e.getBoundingClientRect();
+    if (r.top < window.innerHeight * 1.5 && r.bottom > -100) e.classList.add('vu');
+  }), reduit ? 0 : 2600);
 
   $$('.g3 > div, figure').forEach(e => {
     e.classList.add('sp');
@@ -788,7 +1217,7 @@ if (cv) {
   addEventListener('pointermove', e => { mx = e.clientX / innerWidth - 0.5; });
   addEventListener('pointerdown', e => { if (!e.target.closest('a, button, input, summary, .modal-overlay, .modal-box')) kick = 1; });
 
-  const t0 = performance.now();
+  const t0 = performance.now() + 1600;
   const lisse = x => x * x * (3 - 2 * x), clock = new THREE.Clock();
   (function boucle() {
     requestAnimationFrame(boucle);
@@ -816,10 +1245,11 @@ if (cv) {
 // --- 2. Rendu Armes & Bombe C4 : ANIMATION 100% AUTONOME (AUCUNE RÉACTION SOURIS) ---
 const cvO = document.getElementById('objets');
 if (cvO) {
-  const rO = new THREE.WebGLRenderer({ canvas: cvO, alpha: true, antialias: true });
+  const rO = new THREE.WebGLRenderer({ canvas: cvO, alpha: true, antialias: true, premultipliedAlpha: false });
   rO.setPixelRatio(Math.min(devicePixelRatio, 2));
   rO.outputColorSpace = THREE.SRGBColorSpace;
   rO.toneMapping = THREE.ACESFilmicToneMapping;
+  rO.setClearColor(0x000000, 0);
   const sO = new THREE.Scene(), cO = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 4000);
   cO.position.z = 2000;
   sO.add(new THREE.HemisphereLight(0xffffff, 0x222222, 1.6));
@@ -928,7 +1358,13 @@ if (cvO) {
       o.g.rotation.z = 0;
       o.mats.forEach(mt => mt.color.setScalar(1.0));
     });
-    if (visibleObj) rO.render(sO, cO); else rO.clear();
+    if (visibleObj) {
+      rO.render(sO, cO);
+      cvO.classList.add('ready');
+    } else {
+      cvO.classList.remove('ready');
+      rO.clear(true, true, true);
+    }
   })();
 }
 
@@ -954,6 +1390,89 @@ function updateFlashTimer() {
 }
 setInterval(updateFlashTimer, 1000);
 updateFlashTimer();
+
+// --- 4. Rendu 3D Personnage CS2 dans la Modale de Paiement ---
+const mcv = document.getElementById('modal-char-canvas');
+let mRenderer = null, mScene = null, mCam = null, mCharGroup = null;
+const mCache = {};
+
+function setupModal3D() {
+  if (!mcv || mRenderer) return;
+  mRenderer = new THREE.WebGLRenderer({ canvas: mcv, alpha: true, antialias: true });
+  mRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  mRenderer.outputColorSpace = THREE.SRGBColorSpace;
+  mRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+  mScene = new THREE.Scene();
+  const initW = mcv.clientWidth || 360, initH = mcv.clientHeight || 200;
+  mCam = new THREE.PerspectiveCamera(38, initW / initH, 0.1, 100);
+  mCam.position.set(0, 0.05, 2.4);
+
+  mScene.add(new THREE.HemisphereLight(0xffffff, 0x181818, 1.8));
+  const kL = new THREE.DirectionalLight(0xffffff, 2.8); kL.position.set(1.2, 1.8, 2); mScene.add(kL);
+  const rL = new THREE.DirectionalLight(0xffffff, 2.2); rL.position.set(-1.4, 0.8, -1.2); mScene.add(rL);
+
+  mCharGroup = new THREE.Group();
+  mScene.add(mCharGroup);
+
+  function redim() {
+    if (!mcv || !mRenderer) return;
+    const w = mcv.clientWidth || 360, h = mcv.clientHeight || 200;
+    mRenderer.setSize(w, h, false);
+    mCam.aspect = w / h;
+    mCam.updateProjectionMatrix();
+  }
+  new ResizeObserver(redim).observe(mcv);
+  redim();
+
+  const mClock = new THREE.Clock();
+  (function boucleModal() {
+    requestAnimationFrame(boucleModal);
+    const mOverlay = document.getElementById('checkoutModal');
+    if (!mOverlay || !mOverlay.classList.contains('active')) return;
+    const t = mClock.getElapsedTime();
+    mCharGroup.rotation.y = Math.sin(t * 0.7) * 0.26;
+    mCharGroup.position.y = -0.15 + Math.sin(t * 1.3) * 0.02;
+    mRenderer.render(mScene, mCam);
+  })();
+}
+
+window.__updateModal3D = function(type) {
+  if (!mRenderer) setupModal3D();
+  if (!mCharGroup) return;
+
+  const url = (type === 't' ? 'models/t.glb' : 'models/ct.glb');
+  const applyModel = (model) => {
+    while (mCharGroup.children.length > 0) mCharGroup.remove(mCharGroup.children[0]);
+    mCharGroup.add(model);
+  };
+
+  if (mCache[url]) {
+    applyModel(mCache[url]);
+    return;
+  }
+
+  new GLTFLoader().load(url, gltf => {
+    const m = gltf.scene;
+    const box = new THREE.Box3().setFromObject(m);
+    const sz = box.getSize(new THREE.Vector3());
+    const ctr = box.getCenter(new THREE.Vector3());
+    m.position.sub(ctr);
+    const sc = 1.6 / sz.y;
+    m.scale.setScalar(sc);
+
+    m.traverse(node => {
+      if (node.isMesh && node.material) {
+        [].concat(node.material).forEach(mat => {
+          if (mat.color) mat.color.setScalar(1.0);
+        });
+      }
+    });
+
+    mCache[url] = m;
+    applyModel(m);
+  }, undefined, err => console.warn('Erreur chargement perso 3D modal:', err));
+};
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -965,85 +1484,184 @@ updateFlashTimer();
       key: 'weekly',
       priceId: 'price_1UVq9u4B9y6vJovVJbXzpLuT',
       productId: 'prod_VWtxoONbrZbALd',
-      name: 'LICENCE 7 JOURS',
+      name: 'ARCEUS PASS 7 JOURS',
+      sub: 'Pour tester les fonctionnalités sur une semaine de compétition.',
       amount: '4,99 €',
-      cents: 499
+      oldAmount: '6,99 €',
+      period: '7 jours d’accès immédiat',
+      cents: 499,
+      char: 'ct'
     },
     mois: {
       key: 'monthly',
       priceId: 'price_1UVqD44B9y6vJovVO0gjgpE6',
       productId: 'prod_VWtxhGzZp6n36T',
-      name: 'LICENCE 30 JOURS',
+      name: 'ARCEUS PASS MENSUEL',
+      sub: 'L’accès complet 30 jours, idéal pour les joueurs réguliers.',
       amount: '14,99 €',
-      cents: 1499
+      oldAmount: '19,99 €',
+      period: '30 jours d’accès immédiat',
+      cents: 1499,
+      char: 'ct'
     },
     trimestre: {
       key: 'quarterly',
-      priceId: 'price_1UVqEB4B9y6vJovVU2qH5e1h',
+      priceId: 'price_1UWCow4B9y6vJovV9QaSHDy5',
       productId: 'prod_VWtxpWl5X1t9rB',
-      name: 'LICENCE 90 JOURS',
+      name: 'ARCEUS PASS TRIMESTRE',
+      sub: 'Le meilleur rapport qualité/prix pour dominer sur 90 jours.',
       amount: '29,99 €',
-      cents: 2999
+      oldAmount: '39,99 €',
+      period: '90 jours d’accès immédiat',
+      cents: 2999,
+      char: 't'
     },
     lifetime: {
       key: 'lifetime',
-      priceId: 'price_1UVqEg4B9y6vJovV31eB65jZ',
+      priceId: 'price_1UVr7K4B9y6vJovVCaXgbHJo',
       productId: 'prod_VWtxxRkH7K7k1H',
-      name: 'LICENCE LIFETIME',
+      name: 'ARCEUS ACCÈS LIFETIME',
+      sub: 'Licence définitive permanente avec mises à jour à vie et statut VIP.',
       amount: '59,99 €',
-      cents: 5999
+      oldAmount: '79,99 €',
+      period: 'Paiement unique / à vie',
+      cents: 5999,
+      char: 'ct'
     }
   };
 
   let stripeInstance = null;
-  let cardElement = null;
+  let stripeElements = null;
+  let paymentElement = null;
+  let currentPaymentIntentId = '';
   let currentPlan = STRIPE_PRODUCTS.mois;
 
   function initStripe() {
     const cfg = window.__ARX_CONFIG || {};
-    const pk = cfg.stripePublicKey || 'pk_live_placeholder';
+    const pk = cfg.stripePublishableKey || cfg.stripePublicKey || 'pk_live_placeholder';
     if (window.Stripe && pk.startsWith('pk_')) {
       try {
         stripeInstance = window.Stripe(pk);
-        const elements = stripeInstance.elements();
-        cardElement = elements.create('card', {
-          style: {
-            base: {
-              color: '#ffffff',
-              fontFamily: '"Geist Mono", monospace',
-              fontSize: '13px',
-              '::placeholder': { color: '#85878c' }
-            },
-            invalid: { color: '#f43f5e' }
-          }
-        });
-        cardElement.mount('#stripeCardMount');
       } catch (e) {
-        console.warn('Stripe Elements initialization bypassed or offline mode active.', e);
+        console.warn('Initialisation Stripe impossible.', e);
       }
     }
   }
 
-  function openCheckout(planKey) {
+  async function openCheckout(planKey) {
     const prod = STRIPE_PRODUCTS[planKey] || STRIPE_PRODUCTS.mois;
     currentPlan = prod;
 
-    const modalTitle = document.getElementById('modalTitle');
-    const modalSub = document.getElementById('modalSub');
+    const modalProdTitle = document.getElementById('modalProdTitle');
+    const modalProdDesc = document.getElementById('modalProdDesc');
+    const modalPrixMontant = document.getElementById('modalPrixMontant');
+    const modalPrixBarre = document.getElementById('modalPrixBarre');
+    const modalPrixPeriod = document.getElementById('modalPrixPeriod');
     const btnLabel = document.getElementById('btnPayLabel');
     const errEl = document.getElementById('stripeErrText');
 
-    if (modalTitle) modalTitle.textContent = `COMMANDE // ${prod.name}`;
-    if (modalSub) modalSub.textContent = `Montant : ${prod.amount} — Délivrance instantanée de votre clé.`;
+    if (modalProdTitle) modalProdTitle.textContent = prod.name;
+    if (modalProdDesc) modalProdDesc.textContent = prod.sub;
+    if (modalPrixMontant) modalPrixMontant.textContent = prod.amount;
+    if (modalPrixBarre) modalPrixBarre.textContent = prod.oldAmount;
+    if (modalPrixPeriod) modalPrixPeriod.textContent = prod.period;
     if (btnLabel) btnLabel.textContent = `CONFIRMER LE PAIEMENT (${prod.amount}) →`;
-    if (errEl) errEl.textContent = '';
+    if (errEl) errEl.textContent = 'Préparation du paiement sécurisé…';
 
-    document.getElementById('checkoutModal').classList.add('active');
+    const modal = document.getElementById('checkoutModal');
+    if (modal) modal.classList.add('active');
+
+    // Déclenche l'affichage du personnage CS 3D
+    if (window.__updateModal3D) {
+      window.__updateModal3D(prod.char || 'ct');
+    }
+
+    const mount = document.getElementById('stripeCardMount');
+    try {
+      if (!stripeInstance) throw new Error('Stripe ne s’est pas chargé. Rechargez la page.');
+      if (paymentElement) {
+        paymentElement.unmount();
+        paymentElement = null;
+      }
+      mount.innerHTML = '';
+
+      const response = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planKey })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.clientSecret) throw new Error(data.error || 'Paiement indisponible.');
+
+      currentPaymentIntentId = data.paymentIntentId;
+      stripeElements = stripeInstance.elements({
+        clientSecret: data.clientSecret,
+        appearance: {
+          theme: 'night',
+          variables: {
+            colorPrimary: '#ffffff',
+            colorBackground: '#090a0d',
+            colorText: '#ffffff',
+            colorDanger: '#f43f5e',
+            fontFamily: 'Geist Mono, monospace',
+            borderRadius: '6px',
+            spacingUnit: '3.5px'
+          },
+          rules: {
+            '.Input': {
+              padding: '9px 11px',
+              border: '1px solid rgba(255, 255, 255, 0.12)'
+            },
+            '.Tab': {
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              backgroundColor: 'rgba(255, 255, 255, 0.03)'
+            },
+            '.Tab--selected': {
+              borderColor: '#ffffff',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)'
+            }
+          }
+        }
+      });
+      paymentElement = stripeElements.create('payment', {
+        layout: {
+          type: 'tabs',
+          defaultCollapsed: false
+        },
+        fields: {
+          billingDetails: {
+            address: 'never'
+          }
+        }
+      });
+      paymentElement.mount('#stripeCardMount');
+      if (errEl) errEl.textContent = '';
+    } catch (error) {
+      currentPaymentIntentId = '';
+      if (errEl) errEl.textContent = error.message || 'Impossible de préparer le paiement.';
+    }
   }
 
   function closeCheckout() {
     document.getElementById('checkoutModal').classList.remove('active');
     document.getElementById('keyModal').classList.remove('active');
+  }
+
+  async function deliverVerifiedLicense(paymentIntentId) {
+    const keyResp = await fetch('/api/verify-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentIntentId })
+    });
+    const keyData = await keyResp.json();
+    if (!keyResp.ok || !keyData.key) throw new Error(keyData.error || 'Licence indisponible après paiement.');
+
+    const paidPlan = STRIPE_PRODUCTS[keyData.plan] || currentPlan;
+    closeCheckout();
+    document.getElementById('licenseKeyString').textContent = keyData.key;
+    const keyTitle = document.getElementById('keyModalTitle');
+    if (keyTitle) keyTitle.textContent = `PAIEMENT CONFIRMÉ [ ${paidPlan.name} ]`;
+    document.getElementById('keyModal').classList.add('active');
   }
 
   async function processPayment() {
@@ -1057,87 +1675,34 @@ updateFlashTimer();
       return;
     }
 
+    if (!stripeInstance || !stripeElements || !paymentElement || !currentPaymentIntentId) {
+      if (errEl) errEl.textContent = 'Le formulaire Stripe n’est pas encore prêt.';
+      return;
+    }
+
     if (errEl) errEl.textContent = '';
     btn.disabled = true;
-    btnLabel.textContent = 'TRAITEMENT EN COURS...';
-
-    const cfg = window.__ARX_CONFIG || {};
-    const apiBase = cfg.apiBase || 'https://web-production-b4749.up.railway.app/api';
+    btnLabel.textContent = 'PAIEMENT SÉCURISÉ EN COURS…';
 
     try {
-      let paymentCompleted = false;
+      const result = await stripeInstance.confirmPayment({
+        elements: stripeElements,
+        confirmParams: {
+          return_url: `${location.origin}${location.pathname}?payment=return`,
+          payment_method_data: { billing_details: { email } }
+        },
+        redirect: 'if_required'
+      });
 
-      if (stripeInstance && cardElement) {
-        try {
-          const piResp = await fetch(`${apiBase}/create-payment-intent`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              amount: currentPlan.cents,
-              email: email,
-              plan: currentPlan.key,
-              priceId: currentPlan.priceId,
-              productId: currentPlan.productId,
-              productName: currentPlan.name,
-              description: `${currentPlan.name} - ARCEUS CS2 Skin Loader`
-            })
-          });
-
-          if (piResp.ok) {
-            const piData = await piResp.json();
-            if (piData.clientSecret) {
-              const result = await stripeInstance.confirmCardPayment(piData.clientSecret, {
-                payment_method: { card: cardElement, billing_details: { email } }
-              });
-
-              if (result.error) {
-                if (errEl) errEl.textContent = result.error.message;
-                btn.disabled = false;
-                btnLabel.textContent = `CONFIRMER LE PAIEMENT (${currentPlan.amount}) →`;
-                return;
-              }
-              paymentCompleted = true;
-            }
-          }
-        } catch (backendErr) {
-          console.warn('Backend non joignable, génération de licence directe.', backendErr);
-        }
+      if (result.error) throw new Error(result.error.message || 'Paiement refusé.');
+      if (!result.paymentIntent || result.paymentIntent.status !== 'succeeded') {
+        throw new Error('Le paiement n’a pas encore été confirmé par Stripe.');
       }
 
-      if (!paymentCompleted) {
-        await new Promise(r => setTimeout(r, 900));
-      }
+      await deliverVerifiedLicense(result.paymentIntent.id);
 
-      let genKey = '';
-      try {
-        const keyResp = await fetch(`${apiBase}/keys/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            plan: currentPlan.key,
-            email: email,
-            secret: cfg.webhookSecret || ''
-          })
-        });
-        if (keyResp.ok) {
-          const d = await keyResp.json();
-          genKey = d.key;
-        }
-      } catch (e) {}
-
-      if (!genKey) {
-        const r = () => Math.random().toString(36).substring(2, 6).toUpperCase();
-        genKey = `ARCEUS-${r()}-${r()}-${r()}`;
-      }
-
-      closeCheckout();
-      document.getElementById('licenseKeyString').textContent = genKey;
-      const keyTitle = document.getElementById('keyModalTitle');
-      if (keyTitle) keyTitle.textContent = `PAIEMENT CONFIRMÉ [ ${currentPlan.name} ]`;
-      document.getElementById('keyModal').classList.add('active');
-
-    } catch (err) {
-      if (errEl) errEl.textContent = err.message || 'Erreur lors du traitement.';
+    } catch (error) {
+      if (errEl) errEl.textContent = error.message || 'Erreur lors du paiement.';
     } finally {
       btn.disabled = false;
       btnLabel.textContent = `CONFIRMER LE PAIEMENT (${currentPlan.amount}) →`;
@@ -1153,6 +1718,20 @@ updateFlashTimer();
 
   window.addEventListener('DOMContentLoaded', () => {
     initStripe();
+    const params = new URLSearchParams(location.search);
+    const clientSecret = params.get('payment_intent_client_secret');
+    if (clientSecret && stripeInstance) {
+      stripeInstance.retrievePaymentIntent(clientSecret).then(async ({ paymentIntent, error }) => {
+        try {
+          if (error) throw new Error(error.message);
+          if (!paymentIntent || paymentIntent.status !== 'succeeded') throw new Error('Paiement non confirmé.');
+          await deliverVerifiedLicense(paymentIntent.id);
+          history.replaceState({}, document.title, location.pathname + location.hash);
+        } catch (returnError) {
+          alert(returnError.message || 'Impossible de vérifier le retour Stripe.');
+        }
+      });
+    }
   });
 </script>
 

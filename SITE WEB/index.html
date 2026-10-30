@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/x-icon" href="logo.ico">
+<link rel="preload" href="models/ct.glb" as="fetch" crossorigin>
+<link rel="preload" href="models/t.glb" as="fetch" crossorigin>
 <script>document.documentElement.classList.add("js")</script>
 <script src="https://js.stripe.com/v3/"></script>
 <script src="arx-config.js"></script>
@@ -29,7 +31,7 @@
   .g { color: var(--g); }
 
   /* Barre de navigation */
-  .nav { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font-family: var(--m); animation: nv .9s 1.9s both cubic-bezier(.2,.7,.1,1); }
+  .nav { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font-family: var(--m); animation: nv .5s .4s both cubic-bezier(.2,.7,.1,1); }
   @keyframes nv { from { opacity: 0; transform: translate(-50%, -30px); } }
   .nav a { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: #85878c; background: #121212; border: 1px solid transparent; transition: transform .2s, background .2s, color .2s, border-color .2s, box-shadow .2s; }
   .nav a:hover, .nav a:focus-visible { color: #fff; background: #1b1b1b; border-color: rgba(255,255,255,.16); transform: translateY(6px); box-shadow: 0 10px 24px rgba(0,0,0,.6); }
@@ -48,9 +50,9 @@
   #cur { position: fixed; left: 0; top: 0; width: 30px; height: 30px; border: 1px solid #fff; border-radius: 50%; mix-blend-mode: difference; pointer-events: none; z-index: 70; transition: background .25s; }
   #cur.big { background: #fff; }
   @media (pointer: coarse) { #cur { display: none; } }
-  #intro { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; pointer-events: none; animation: up .9s 1.4s cubic-bezier(.7,0,.2,1) forwards; }
-  #intro b { font: 600 clamp(2.4rem, 9vw, 6rem) Geist, system-ui, sans-serif; animation: ib 1.2s both; }
-  @keyframes ib { from { opacity: 0; letter-spacing: .9em; } to { opacity: 1; letter-spacing: .3em; } }
+  #intro { position: fixed; inset: 0; z-index: 100; background: #000; display: grid; place-items: center; pointer-events: none; animation: up .5s .3s cubic-bezier(.7,0,.2,1) forwards; }
+  #intro b { font: 600 clamp(2.4rem, 9vw, 6rem) Geist, system-ui, sans-serif; animation: ib .5s both; }
+  @keyframes ib { from { opacity: 0; letter-spacing: .8em; } to { opacity: 1; letter-spacing: .3em; } }
   @keyframes up { to { transform: translateY(-100%); } }
 
   /* Masque de révélation de texte */
@@ -76,7 +78,7 @@
 
   /* Canvas 3D Duel */
   #duel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; filter: grayscale(1) contrast(1.12); -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
-  #duel.ok { opacity: 1; transition: opacity 1.4s 1.6s; }
+  #duel.ok { opacity: 1; transition: opacity .5s ease-out; }
   @media (max-width: 999px) { #duel.ok { opacity: .55; } }
   .eq { position: absolute; z-index: 1; bottom: 34px; font: 500 .75rem var(--m); letter-spacing: .14em; text-transform: uppercase; color: var(--g); }
   .eq.l { left: max(4vw, 24px); } .eq.r { right: max(4vw, 24px); }
@@ -778,7 +780,7 @@ if (cv) {
   addEventListener('pointermove', e => { mx = e.clientX / innerWidth - 0.5; });
   addEventListener('pointerdown', e => { if (!e.target.closest('a, button, input, summary, .modal-overlay, .modal-box')) kick = 1; });
 
-  const t0 = performance.now() + 1600;
+  const t0 = performance.now();
   const lisse = x => x * x * (3 - 2 * x), clock = new THREE.Clock();
   (function boucle() {
     requestAnimationFrame(boucle);
@@ -826,13 +828,20 @@ if (cvO) {
   }
   addEventListener('resize', tailleO); tailleO();
 
+  const sharedLoader = new GLTFLoader();
   const objets = [...document.querySelectorAll('.vit')].map(el => ({
-    el, g: new THREE.Group(), mats: [], vu: 0, ph: Math.random() * 6.28
+    el, g: new THREE.Group(), mats: [], vu: 0, ph: Math.random() * 6.28, loading: false, loaded: false
   }));
 
   objets.forEach(o => {
-    sO.add(o.g); o.g.visible = false;
-    new GLTFLoader().load('models/' + o.el.dataset.m + '.glb', g => {
+    sO.add(o.g);
+    o.g.visible = false;
+  });
+
+  function loadSingleModel(o) {
+    if (o.loading || o.loaded) return;
+    o.loading = true;
+    sharedLoader.load('models/' + o.el.dataset.m + '.glb', g => {
       const m = g.scene; m.updateMatrixWorld(true);
       m.traverse(n => { if (n.isMesh) n.frustumCulled = false; if (n.isSkinnedMesh) n.skeleton.update(); });
       const box = new THREE.Box3().setFromObject(m, true), sz = box.getSize(new THREE.Vector3());
@@ -847,8 +856,40 @@ if (cvO) {
       o.L = v[ax[0]]; o.Hh = v[ax[1]];
       o.g.add(inner);
       m.traverse(n => { if (n.isMesh) [].concat(n.material).forEach(mt => mt.color && o.mats.push(mt)); });
+      o.loaded = true;
     }, undefined, e => console.warn('Modèle arme/C4 introuvable :', o.el.dataset.m, e));
-  });
+  }
+
+  // OPTIMISATION CHARGEMENT : Lazy loading par IntersectionObserver (économise 10 Mo au lancement)
+  let armesLoaded = false, c4Loaded = false;
+  const lazyArmes = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !armesLoaded) {
+      armesLoaded = true;
+      lazyArmes.disconnect();
+      objets.filter(o => !o.el.classList.contains('c4')).forEach(loadSingleModel);
+    }
+  }, { rootMargin: '500px 0px' });
+  const sectionOffres = document.getElementById('offres');
+  if (sectionOffres) lazyArmes.observe(sectionOffres);
+
+  const lazyC4 = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !c4Loaded) {
+      c4Loaded = true;
+      lazyC4.disconnect();
+      objets.filter(o => o.el.classList.contains('c4')).forEach(loadSingleModel);
+    }
+  }, { rootMargin: '500px 0px' });
+  const sectionFin = document.getElementById('fin');
+  if (sectionFin) lazyC4.observe(sectionFin);
+
+  // Préchargement en tâche de fond une fois la page stabilisée
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      setTimeout(() => objets.forEach(loadSingleModel), 2500);
+    });
+  } else {
+    setTimeout(() => objets.forEach(loadSingleModel), 3000);
+  }
 
   const horlogeO = new THREE.Clock();
   (function boucleO() {

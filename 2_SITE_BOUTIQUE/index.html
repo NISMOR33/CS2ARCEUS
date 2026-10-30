@@ -110,26 +110,46 @@
   .pas p { color: #b5b5b5; }
 
   /* Offres & Vitrines 3D Armes */
-  .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 30px; }
+  .grille { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 40px; }
   @media (max-width: 1040px) { .grille { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 640px) { .grille { grid-template-columns: 1fr; } }
   .card { padding: 26px 22px 24px; position: relative; }
   .card .desc { color: var(--g); font-size: .9rem; }
-  .prix { display: flex; align-items: baseline; gap: 8px; margin: 18px 0 16px; font-size: clamp(2.2rem, 4vw, 2.9rem); font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .prix { display: flex; align-items: baseline; gap: 6px; margin: 18px 0 16px; font-size: clamp(2.2rem, 4vw, 2.9rem); font-weight: 600; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
   .prix small { font-size: .9rem; font-weight: 400; color: var(--g); letter-spacing: 0; }
+  .barre { font-size: 0.48em; color: #5a5a5a; text-decoration: line-through; font-weight: 400; margin-right: 4px; letter-spacing: 0; }
+  .remise { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; font-family: var(--m); color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); padding: 1px 5px; border-radius: 4px; margin-left: auto; letter-spacing: .04em; }
   .card ul { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 10px; font-size: .93rem; color: #d0d0d0; }
   .card li { display: flex; align-items: center; gap: 10px; }
   .card li::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: .6; }
   .cta { width: 100%; }
   .card > * { opacity: 0; transform: translateY(12px); transition: opacity .35s, transform .35s; }
   .grille.on .card > * { opacity: 1; transform: none; transition: opacity .7s, transform .7s; transition-delay: calc(1.3s + var(--c) * .15s + var(--n) * .08s); }
-  .card > :nth-child(1) { --n: 0; } .card > :nth-child(2) { --n: 1; } .card > :nth-child(3) { --n: 2; } .card > :nth-child(4) { --n: 3; } .card > :nth-child(5) { --n: 4; } .card > :nth-child(6) { --n: 5; }
+  .card > :nth-child(1) { --n: 0; } .card > :nth-child(2) { --n: 1; } .card > :nth-child(3) { --n: 2; } .card > :nth-child(4) { --n: 3; } .card > :nth-child(5) { --n: 4; }
 
   /* Vitrines 3D Armes & Bombe C4 */
   .vit { height: 118px; margin: -4px 0 6px; }
   .vit.c4 { width: min(260px, 70%); height: 150px; margin: 0 auto 8px; }
-  .timer { margin: 0 0 24px; font: 700 1.25rem var(--m); letter-spacing: .2em; }
-  .timer span { display: inline-block; padding: 8px 18px; border: 1px solid rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.08); color: #f87171; border-radius: 8px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+  
+  /* Promo badge sobre en noir & blanc */
+  .promo-sober {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    color: #c4c4c4;
+    font-family: var(--m);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    margin-bottom: 14px;
+  }
+  .promo-sober svg { flex: none; stroke: #fff; opacity: 0.85; }
+  .timer { margin: 0 0 24px; font: 500 1.2rem var(--m); letter-spacing: .18em; }
+  .timer span { display: inline-block; padding: 6px 16px; border: 1px solid var(--l); border-radius: 8px; background: rgba(0,0,0,0.5); color: #fff; }
 
   /* Avis */
   .note { display: flex; align-items: baseline; gap: 14px; margin-bottom: 44px; color: var(--g); }
@@ -283,7 +303,7 @@
     <h1 style="letter-spacing: -0.04em;">Tous les skins CS2. Zéro détection.</h1>
     <p class="s">ARCEUS injecte directement dans Counter-Strike 2 vos couteaux, gants, stickers et inventaires pro en temps réel. Moteur natif Ring-0, invisible pour VAC Live et sans baisse de FPS.</p>
     <div class="acts">
-      <a class="btn pl" href="#offres">OBTENIR UNE LICENCE (-25%)</a>
+      <a class="btn pl" href="#offres">OBTENIR UNE LICENCE</a>
       <a class="btn" href="#methode">Comment ça marche</a>
     </div>
     <p class="conf">Plus de 14 500 joueurs actifs // 0 détection VAC depuis le lancement.</p>
@@ -330,74 +350,42 @@
 
   <section id="offres">
     <div class="w">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
-        <div>
-          <h2>Tarifs & Accès Immédiat.</h2>
-          <p class="g">Paiement sécurisé par carte bancaire avec Stripe. Délivrance de licence instantanée à l'écran.</p>
-        </div>
-        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); border-radius: 10px; font-family: var(--m); font-size: 12px; font-weight: 700; color: #f87171;">
-          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
-          OFFRE FLASH -25% EN COURS // FIN DANS <span id="t4-top" style="color: #fff; margin-left: 4px;">59:45</span>
-        </div>
-      </div>
+      <h2>Tarifs & Accès Immédiat.</h2>
+      <p class="g">Offre temporaire -25% appliquée directement sur tous les accès. Délivrance de licence instantanée.</p>
 
       <div class="grille">
         <article class="card" style="--c:0">
           <div class="vit" data-m="deagle"></div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <h3 style="margin:0;">ARCEUS Pass 7J</h3>
-            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
-          </div>
-          <p class="desc">Idéal pour tester un week-end</p>
-          <div class="prix">
-            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">6,99 €</span>
-            4,99 € <small>/ semaine</small>
-          </div>
+          <h3>ARCEUS Pass 7J</h3>
+          <p class="desc">Pour tester sur un week-end</p>
+          <div class="prix"><span class="barre">6,99 €</span>4,99 € <small>/ semaine</small><span class="remise">-25%</span></div>
           <ul><li>Accès intégral 7 jours</li><li>Tous couteaux, gants & armes</li><li>Presets Pro téléchargeables</li><li>Protection Ring-0 VAC Safe</li><li>Support Discord 24/7</li></ul>
           <button class="cta" type="button" onclick="openCheckout('semaine')">Commander 7J</button>
         </article>
 
         <article class="card" style="--c:1">
           <div class="vit" data-m="ak47"></div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <h3 style="margin:0;">ARCEUS Mensuel</h3>
-            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
-          </div>
+          <h3>ARCEUS Mensuel</h3>
           <p class="desc">Pour les joueurs réguliers</p>
-          <div class="prix">
-            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">19,99 €</span>
-            14,99 € <small>/ mois</small>
-          </div>
+          <div class="prix"><span class="barre">19,99 €</span>14,99 € <small>/ mois</small><span class="remise">-25%</span></div>
           <ul><li>Accès intégral 30 jours</li><li>Mises à jour prioritaires CS2</li><li>StatTrak™ & Float custom</li><li>Profils sauvegardés dans le cloud</li><li>Support VIP dédié</li></ul>
           <button class="cta pl" type="button" onclick="openCheckout('mois')">Commander 1 Mois</button>
         </article>
 
         <article class="card" style="--c:2">
           <div class="vit" data-m="awp"></div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <h3 style="margin:0;">ARCEUS Trimestre</h3>
-            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
-          </div>
+          <h3>ARCEUS Trimestre</h3>
           <p class="desc">Le choix le plus populaire</p>
-          <div class="prix">
-            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">39,99 €</span>
-            29,99 € <small>/ 3 mois</small>
-          </div>
+          <div class="prix"><span class="barre">39,99 €</span>29,99 € <small>/ 3 mois</small><span class="remise">-25%</span></div>
           <ul><li>Accès intégral 90 jours</li><li>Économisez 33% sur l'année</li><li>Accès anticipé nouvelles armes</li><li>Support prioritaire niveau 2</li><li>Garantie Zéro Détection</li></ul>
           <button class="cta" type="button" onclick="openCheckout('trimestre')">Commander 3 Mois</button>
         </article>
 
         <article class="card" style="--c:3">
           <div class="vit" data-m="karambit"></div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <h3 style="margin:0;">ARCEUS Lifetime</h3>
-            <span style="font-family:var(--m); font-size:10px; font-weight:700; background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:2px 6px; border-radius:4px;">-25% PROMO</span>
-          </div>
-          <p class="desc">Accès définitif à vie</p>
-          <div class="prix">
-            <span style="text-decoration:line-through; color:#666; font-size:0.55em; margin-right:6px; font-weight:400;">79,99 €</span>
-            59,99 € <small>/ unique</small>
-          </div>
+          <h3>ARCEUS Lifetime</h3>
+          <p class="desc">Accès définitif permanent</p>
+          <div class="prix"><span class="barre">79,99 €</span>59,99 € <small>/ unique</small><span class="remise">-25%</span></div>
           <ul><li>Licence permanente à vie</li><li>Mises à jour majeures gratuites</li><li>Badge VIP exclusif communauté</li><li>Accès canal privé développeurs</li><li>Support personnalisé 1-on-1</li></ul>
           <button class="cta pl" type="button" onclick="openCheckout('lifetime')">Accès Lifetime</button>
         </article>
@@ -434,14 +422,15 @@
   <section class="fin" id="fin">
     <div class="w">
       <div class="vit c4" data-m="c4"></div>
-      <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.1); border-radius:8px; color:#f87171; font-family:var(--m); font-size:12px; font-weight:700; margin-bottom:14px; letter-spacing:0.08em;">
-        <span>⚡ OFFRE FLASH // -25% SUR TOUTES LES LICENCES</span>
+      <div class="promo-sober">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>OFFRE LIMITÉE // TARIFS RÉDUITS DE 25%</span>
       </div>
       <p class="timer" aria-hidden="true"><span id="t4">59:45</span></p>
-      <h2>Équipez votre inventaire avant la fin du décompte.</h2>
-      <p class="g">La remise de -25% est automatiquement appliquée sur les tarifs affichés. Délivrance immédiate de votre clé.</p>
+      <h2>Équipez votre inventaire avant l'expiration.</h2>
+      <p class="g">La remise de 25% est déjà incluse dans les tarifs affichés. Délivrance immédiate de votre clé.</p>
       <div style="margin-top: 30px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-        <a class="btn pl" href="#offres">PROFITER DU -25% MAINTENANT</a>
+        <a class="btn pl" href="#offres">COMMANDER UNE LICENCE</a>
         <a class="btn" href="https://discord.gg" target="_blank" rel="noopener">REJOINDRE LE DISCORD</a>
       </div>
     </div>
@@ -896,11 +885,10 @@ if (cvO) {
 
 // --- 3. COMPTE À REBOURS PROMO 1 HEURE (-25%) ---
 const t4 = document.getElementById('t4');
-const t4Top = document.getElementById('t4-top');
 let flashEnd = localStorage.getItem('arx_flash_time');
 const now = Date.now();
 if (!flashEnd || now > parseInt(flashEnd, 10)) {
-  flashEnd = String(now + 59 * 60 * 1000 + 45 * 1000); // 59 minutes 45 secondes
+  flashEnd = String(now + 59 * 60 * 1000 + 45 * 1000);
   localStorage.setItem('arx_flash_time', flashEnd);
 }
 
@@ -910,7 +898,6 @@ function updateFlashTimer() {
   const s = remaining % 60;
   const timeStr = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   if (t4) t4.textContent = timeStr;
-  if (t4Top) t4Top.textContent = timeStr;
   if (remaining <= 0) {
     flashEnd = String(Date.now() + 59 * 60 * 1000 + 59 * 1000);
     localStorage.setItem('arx_flash_time', flashEnd);
@@ -929,7 +916,7 @@ updateFlashTimer();
       key: 'weekly',
       priceId: 'price_1UVq9u4B9y6vJovVJbXzpLuT',
       productId: 'prod_VWtxoONbrZbALd',
-      name: 'LICENSE 7 JOURS (-25%)',
+      name: 'LICENCE 7 JOURS',
       amount: '4,99 €',
       cents: 499
     },
@@ -937,7 +924,7 @@ updateFlashTimer();
       key: 'monthly',
       priceId: 'price_1UVqD44B9y6vJovVO0gjgpE6',
       productId: 'prod_VWtxhGzZp6n36T',
-      name: 'LICENSE 30 JOURS (-25%)',
+      name: 'LICENCE 30 JOURS',
       amount: '14,99 €',
       cents: 1499
     },
@@ -945,7 +932,7 @@ updateFlashTimer();
       key: 'quarterly',
       priceId: 'price_1UVqEB4B9y6vJovVU2qH5e1h',
       productId: 'prod_VWtxpWl5X1t9rB',
-      name: 'LICENSE 90 JOURS (-25%)',
+      name: 'LICENCE 90 JOURS',
       amount: '29,99 €',
       cents: 2999
     },
@@ -953,7 +940,7 @@ updateFlashTimer();
       key: 'lifetime',
       priceId: 'price_1UVqEg4B9y6vJovV31eB65jZ',
       productId: 'prod_VWtxxRkH7K7k1H',
-      name: 'LICENSE LIFETIME (-25%)',
+      name: 'LICENCE LIFETIME',
       amount: '59,99 €',
       cents: 5999
     }
@@ -998,7 +985,7 @@ updateFlashTimer();
     const errEl = document.getElementById('stripeErrText');
 
     if (modalTitle) modalTitle.textContent = `COMMANDE // ${prod.name}`;
-    if (modalSub) modalSub.textContent = `Montant : ${prod.amount} — Offre Flash -25% appliquée, clé délivrée immédiatement.`;
+    if (modalSub) modalSub.textContent = `Montant : ${prod.amount} — Délivrance instantanée de votre clé.`;
     if (btnLabel) btnLabel.textContent = `CONFIRMER LE PAIEMENT (${prod.amount}) →`;
     if (errEl) errEl.textContent = '';
 

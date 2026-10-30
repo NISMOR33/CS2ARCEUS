@@ -1701,7 +1701,10 @@ window.__updateModal3D = function(type) {
         },
         fields: {
           billingDetails: {
-            address: 'never'
+            name: 'auto',
+            email: 'never',
+            phone: 'never',
+            address: 'auto'
           }
         }
       });
@@ -1768,10 +1771,7 @@ window.__updateModal3D = function(type) {
           return_url: `${location.origin}${location.pathname}?payment=return`,
           payment_method_data: {
             billing_details: {
-              email: email,
-              address: {
-                country: userCountry || 'FR'
-              }
+              email: email
             }
           }
         },
